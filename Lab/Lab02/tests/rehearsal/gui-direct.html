@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Create an account</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #eef3f8; color: #17324d; font: 16px system-ui, sans-serif; }
+    header { background: #17649c; color: white; padding: 22px; }
+    header h1 { max-width: 620px; margin: auto; }
+    main { padding: 28px 16px; }
+    form { max-width: 620px; margin: auto; padding: 28px; background: white; }
+    label { display: block; margin-top: 14px; }
+    input:not([type="checkbox"]) { width: 100%; padding: 10px; }
+    button { margin-top: 18px; padding: 11px 20px; background: #d66e12; color: white; border: 0; }
+  </style>
+</head>
+<body>
+  <header><h1>Create an account</h1></header>
+  <main>
+    <form>
+      <label for="username">Username</label>
+      <input id="username" type="text">
+      <label for="email">Email address</label>
+      <input id="email" type="email">
+      <label for="password">Password</label>
+      <input id="password" type="password">
+      <label for="confirmation">Confirm password</label>
+      <input id="confirmation" type="password">
+      <label><input type="checkbox"> Show password</label>
+      <label><input type="checkbox"> I accept the terms of service</label>
+      <button type="submit">Register</button>
+    </form>
+  </main>
+  <script>
+    document.querySelector("form").addEventListener("submit", (event) => event.preventDefault());
+  </script>
+</body>
+</html>

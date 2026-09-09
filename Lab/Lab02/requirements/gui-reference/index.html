@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Standard registration UI</title>
+  <style>
+    :root { color-scheme: light; --blue: #0b4f80; --ink: #17324d; --muted: #52677b; --line: #9aabb9; --orange: #d86f12; --paper: #fff; --canvas: #eef4f8; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-width: 0; background: var(--canvas); color: var(--ink); font: 16px/1.5 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    header { width: 100%; background: var(--blue); color: white; border-bottom: 4px solid #e28a35; }
+    .header-inner { width: min(100% - 32px, 960px); margin: auto; padding: 22px 0; }
+    .service { margin: 0 0 3px; font-size: .83rem; font-weight: 750; letter-spacing: .08em; text-transform: uppercase; opacity: .9; }
+    header h1 { margin: 0; font-size: clamp(1.65rem, 4vw, 2.25rem); line-height: 1.2; }
+    main { width: min(100% - 32px, 720px); margin: 34px auto 54px; }
+    .panel { overflow: hidden; background: var(--paper); border-top: 6px solid var(--orange); border-radius: 8px; box-shadow: 0 12px 30px rgb(20 54 78 / 12%); }
+    .panel-inner { padding: 30px; }
+    .intro { margin: 0 0 24px; color: var(--muted); }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px 22px; }
+    .full { grid-column: 1 / -1; }
+    label, legend { display: block; margin: 0 0 6px; font-weight: 720; }
+    .hint { display: block; margin-top: 5px; color: var(--muted); font-size: .86rem; }
+    input:not([type="checkbox"]) { width: 100%; min-height: 44px; padding: 10px 12px; color: var(--ink); background: white; border: 1px solid var(--line); border-radius: 4px; font: inherit; }
+    input:focus-visible, button:focus-visible { outline: 3px solid #ffbf69; outline-offset: 2px; }
+    fieldset { margin: 0; padding: 0; border: 0; }
+    .password-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+    .visibility { min-height: 36px; padding: 6px 10px; color: var(--blue); background: white; border: 1px solid var(--blue); border-radius: 4px; font-weight: 700; }
+    .terms { display: flex; align-items: flex-start; gap: 10px; margin-top: 4px; font-weight: 500; }
+    .terms input { width: 19px; height: 19px; margin-top: 3px; accent-color: var(--blue); }
+    .actions { display: flex; align-items: center; gap: 18px; margin-top: 26px; padding-top: 22px; border-top: 1px solid #d9e1e8; }
+    .submit { min-height: 46px; padding: 10px 24px; color: white; background: var(--orange); border: 2px solid #b55509; border-radius: 4px; font: inherit; font-weight: 780; }
+    .required-note { color: var(--muted); font-size: .87rem; }
+    @media (max-width: 600px) {
+      .header-inner, main { width: min(100% - 24px, 720px); }
+      main { margin-top: 22px; }
+      .panel-inner { padding: 21px 18px; }
+      .grid { grid-template-columns: 1fr; gap: 16px; }
+      .full { grid-column: auto; }
+      .actions { align-items: stretch; flex-direction: column; }
+      .submit { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <p class="service">Community services</p>
+      <h1>Create your account</h1>
+    </div>
+  </header>
+  <main>
+    <section class="panel" aria-labelledby="form-title">
+      <div class="panel-inner">
+        <h2 id="form-title">Registration details</h2>
+        <p class="intro">Enter your details below. Fields marked required must be completed.</p>
+        <form>
+          <div class="grid">
+            <div>
+              <label for="username">Username</label>
+              <input id="username" name="username" autocomplete="username">
+              <span class="hint">3–20 characters; letters, numbers and underscores.</span>
+            </div>
+            <div>
+              <label for="email">Email address</label>
+              <input id="email" name="email" type="email" autocomplete="email">
+            </div>
+            <div class="full">
+              <label for="dateOfBirth">Date of birth <span class="required-note">(optional)</span></label>
+              <input id="dateOfBirth" name="dateOfBirth" type="date" autocomplete="bday">
+            </div>
+            <div class="full">
+              <div class="password-row">
+                <button class="visibility" type="button" aria-controls="password confirmPassword">Show passwords</button>
+              </div>
+              <div class="grid">
+                <div>
+                  <label for="password">Password</label>
+                  <input id="password" name="password" type="password" autocomplete="new-password">
+                  <span class="hint">10–64 characters with a letter and a number.</span>
+                </div>
+                <div>
+                  <label for="confirmPassword">Confirm password</label>
+                  <input id="confirmPassword" name="confirmPassword" type="password" autocomplete="new-password">
+                </div>
+              </div>
+            </div>
+            <label class="terms full"><input name="terms" type="checkbox"> <span>I accept the terms of service.</span></label>
+          </div>
+          <div class="actions">
+            <button class="submit" type="submit">Create account</button>
+            <span class="required-note">Your password is never stored in this browser.</span>
+          </div>
+        </form>
+      </div>
+    </section>
+  </main>
+  <script>
+    const toggle = document.querySelector('.visibility');
+    const passwordFields = [document.querySelector('#password'), document.querySelector('#confirmPassword')];
+    toggle.addEventListener('click', () => {
+      const reveal = passwordFields[0].type === 'password';
+      for (const field of passwordFields) field.type = reveal ? 'text' : 'password';
+      toggle.textContent = reveal ? 'Hide passwords' : 'Show passwords';
+    });
+    document.querySelector('form').addEventListener('submit', (event) => event.preventDefault());
+  </script>
+</body>
+</html>

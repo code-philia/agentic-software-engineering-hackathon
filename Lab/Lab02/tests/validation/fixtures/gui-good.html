@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Create an account</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #eef4f8; color: #17324d; font: 16px/1.5 system-ui, sans-serif; }
+    header { width: 100%; padding: 22px 16px; background: #0b4f80; color: white; border-bottom: 4px solid #d86f12; }
+    header h1 { max-width: 720px; margin: auto; }
+    main { width: min(100% - 32px, 720px); margin: 30px auto; }
+    .panel { padding: 28px; background: white; border-top: 5px solid #d86f12; border-radius: 7px; box-shadow: 0 10px 25px rgb(20 54 78 / 12%); }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 20px; }
+    .full { grid-column: 1 / -1; }
+    label { display: block; margin-bottom: 5px; font-weight: 700; }
+    input:not([type="checkbox"]) { width: 100%; min-height: 44px; padding: 9px 11px; border: 1px solid #879bab; border-radius: 4px; font: inherit; }
+    input:focus-visible, button:focus-visible { outline: 3px solid #ffbf69; outline-offset: 2px; }
+    [aria-invalid="true"] { border: 2px solid #a61b1b !important; }
+    .field-error { min-height: 1.3em; margin: 4px 0 0; color: #8d1515; font-weight: 650; }
+    #error-summary { margin-bottom: 18px; padding: 12px 14px; border-left: 5px solid #a61b1b; background: #fff1f1; }
+    #feedback { margin-top: 16px; padding: 12px 14px; border-left: 5px solid #237a3b; background: #effaf1; }
+    [hidden] { display: none !important; }
+    .toggle { margin: 2px 0 16px; padding: 7px 11px; color: #0b4f80; background: white; border: 1px solid #0b4f80; border-radius: 4px; font-weight: 700; }
+    .terms { display: flex; gap: 9px; font-weight: 500; }
+    .terms input { width: 19px; height: 19px; margin-top: 3px; }
+    .submit { margin-top: 22px; min-height: 46px; padding: 10px 24px; color: white; background: #d86f12; border: 2px solid #ad5008; border-radius: 4px; font: inherit; font-weight: 750; }
+    @media (max-width: 600px) { main { width: min(100% - 24px, 720px); } .panel { padding: 20px 17px; } .grid { grid-template-columns: 1fr; } .full { grid-column: auto; } .submit { width: 100%; } }
+  </style>
+</head>
+<body>
+  <header><h1>Create your account</h1></header>
+  <main><section class="panel" aria-labelledby="form-title">
+    <h2 id="form-title">Registration details</h2>
+    <p id="error-summary" role="alert" tabindex="-1" hidden></p>
+    <form novalidate>
+      <div class="grid">
+        <div><label for="username">Username</label><input id="username" name="username" autocomplete="username" aria-describedby="username-error"><p id="username-error" class="field-error"></p></div>
+        <div><label for="email">Email address</label><input id="email" name="email" type="email" autocomplete="email" aria-describedby="email-error"><p id="email-error" class="field-error"></p></div>
+        <div class="full"><label for="dateOfBirth">Date of birth (optional)</label><input id="dateOfBirth" name="dateOfBirth" type="date" autocomplete="bday" aria-describedby="dateOfBirth-error"><p id="dateOfBirth-error" class="field-error"></p></div>
+        <div><label for="password">Password</label><input id="password" name="password" type="password" autocomplete="new-password" aria-describedby="password-error"><p id="password-error" class="field-error"></p></div>
+        <div><label for="confirmPassword">Confirm password</label><input id="confirmPassword" name="confirmPassword" type="password" autocomplete="new-password" aria-describedby="confirmPassword-error"><p id="confirmPassword-error" class="field-error"></p></div>
+        <div class="full"><button id="toggle" class="toggle" type="button">Show passwords</button></div>
+        <div class="full"><label class="terms" for="terms"><input id="terms" name="terms" type="checkbox" aria-describedby="terms-error"> <span>I accept the terms of service</span></label><p id="terms-error" class="field-error"></p></div>
+      </div>
+      <button class="submit" type="submit">Create account</button>
+      <p id="feedback" role="status" aria-live="polite" hidden></p>
+    </form>
+  </section></main>
+  <script>
+    const ids = ['username', 'email', 'dateOfBirth', 'password', 'confirmPassword', 'terms'];
+    const controls = Object.fromEntries(ids.map(id => [id, document.getElementById(id)]));
+    const summary = document.getElementById('error-summary');
+    const feedback = document.getElementById('feedback');
+    function isDate(value) { const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value); if (!match) return false; const date = new Date(Date.UTC(+match[1], +match[2] - 1, +match[3])); return date.getUTCFullYear() === +match[1] && date.getUTCMonth() === +match[2] - 1 && date.getUTCDate() === +match[3]; }
+    function isEmail(value) { if (/\s/.test(value)) return false; const parts = value.split('@'); if (parts.length !== 2) return false; const [local, domain] = parts; if (!local || local.startsWith('.') || local.endsWith('.') || local.includes('..')) return false; const labels = domain.split('.'); return labels.length >= 2 && labels.every(label => label && /^[a-z0-9-]+$/i.test(label) && !label.startsWith('-') && !label.endsWith('-')); }
+    function clearErrors() { for (const id of ids) { controls[id].removeAttribute('aria-invalid'); document.getElementById(`${id}-error`).textContent = ''; } summary.hidden = true; summary.textContent = ''; feedback.hidden = true; feedback.textContent = ''; }
+    function showErrors(errors) { summary.textContent = `Please correct ${errors.length} registration problem${errors.length === 1 ? '' : 's'}.`; summary.hidden = false; for (const [id, message] of errors) { controls[id].setAttribute('aria-invalid', 'true'); document.getElementById(`${id}-error`).textContent = message; } controls[errors[0][0]].focus(); }
+    document.getElementById('toggle').addEventListener('click', event => { const show = controls.password.type === 'password'; controls.password.type = show ? 'text' : 'password'; controls.confirmPassword.type = show ? 'text' : 'password'; event.currentTarget.textContent = show ? 'Hide passwords' : 'Show passwords'; });
+    document.querySelector('form').addEventListener('submit', event => {
+      event.preventDefault(); clearErrors();
+      const username = controls.username.value.trim(); const email = controls.email.value.trim().toLowerCase(); const password = controls.password.value; const dateOfBirth = controls.dateOfBirth.value;
+      const errors = [];
+      if (!/^[A-Za-z][A-Za-z0-9_]{2,19}$/.test(username)) errors.push(['username', 'Username must be 3 to 20 characters, start with a letter, and use only letters, numbers, or underscores.']);
+      if (!isEmail(email)) errors.push(['email', 'Enter a valid email address.']);
+      if (dateOfBirth && !isDate(dateOfBirth)) errors.push(['dateOfBirth', 'Enter a real date of birth in YYYY-MM-DD format.']);
+      if (password.length < 10 || password.length > 64 || !/[A-Za-z]/.test(password) || !/\d/.test(password)) errors.push(['password', 'Password must be 10 to 64 characters with a letter and a number.']);
+      if (!controls.confirmPassword.value) errors.push(['confirmPassword', 'Password confirmation is required.']);
+      else if (controls.confirmPassword.value !== password) errors.push(['confirmPassword', 'Passwords must match.']);
+      if (!controls.terms.checked) errors.push(['terms', 'You must accept the terms of service.']);
+      if (errors.length) { showErrors(errors); return; }
+      let users = []; try { const stored = JSON.parse(localStorage.getItem('registrations') || '[]'); if (Array.isArray(stored)) users = stored; } catch {}
+      if (users.some(user => String(user.username).toLowerCase() === username.toLowerCase())) { showErrors([['username', 'Username is already registered.']]); return; }
+      if (users.some(user => String(user.email).toLowerCase() === email)) { showErrors([['email', 'Email is already registered.']]); return; }
+      users.push({ username, email, ...(dateOfBirth ? { dateOfBirth } : {}) }); localStorage.setItem('registrations', JSON.stringify(users));
+      feedback.textContent = 'Registration successful. Your account has been created.'; feedback.hidden = false;
+    });
+  </script>
+</body>
+</html>

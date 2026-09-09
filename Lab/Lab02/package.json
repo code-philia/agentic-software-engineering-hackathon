@@ -1,0 +1,44 @@
+{
+  "name": "agentic-se-lab02",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Lab 2: test-driven repair as a harness for LLM code generation.",
+  "type": "module",
+  "engines": {
+    "node": ">=24 <25",
+    "npm": ">=11"
+  },
+  "packageManager": "npm@11.19.0",
+  "scripts": {
+    "demo:api": "tsx src/cli/demo.ts api",
+    "demo:gui": "tsx src/cli/demo.ts gui",
+    "rehearse:gui": "tsx src/cli/rehearse-gui.ts",
+    "doctor": "tsx src/cli/doctor.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --passWithNoTests",
+    "setup:browsers": "playwright install chromium"
+  },
+  "dependencies": {
+    "@clack/prompts": "1.8.0",
+    "@openai/agents": "0.17.2",
+    "@t3-oss/env-core": "0.13.11",
+    "cli-highlight": "2.1.11",
+    "cli-table3": "0.6.5",
+    "dotenv": "17.4.2",
+    "open": "11.0.2",
+    "openai": "7.2.0",
+    "pino": "10.3.1",
+    "zod": "4.5.4"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0",
+    "@types/node": "24.13.3",
+    "tsx": "4.23.13",
+    "typescript": "7.0.2",
+    "vitest": "5.0.0"
+  },
+  "allowScripts": {
+    "esbuild@0.28.2": true,
+    "fsevents": false
+  }
+}
