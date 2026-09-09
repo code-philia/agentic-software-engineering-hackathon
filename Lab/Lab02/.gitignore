@@ -66,7 +66,8 @@ web_modules/
 .yarn-integrity
 
 # dotenv environment variable files
-.env
+# This is intentional to avoid students have to copy the .env.example file to .env and then add it to .gitignore
+!.env
 .env.*
 .*.env
 !.env.example
