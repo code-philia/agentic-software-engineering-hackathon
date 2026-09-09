@@ -1,0 +1,225 @@
+{
+  "version": 1,
+  "tests": [
+    {
+      "file": "REQ-1-user-registration.spec.ts",
+      "location": "REQ-1-user-registration.spec.ts:48:5",
+      "title": "REQ-1: successfully register a new account and remain signed in",
+      "scenario": {
+        "name": "使用有效资料注册并保持登录",
+        "steps": [
+          {
+            "keyword": "GIVEN",
+            "content": "一名未登录访客准备了唯一且符合规则的账号和旅客资料。"
+          },
+          {
+            "keyword": "WHEN",
+            "content": "访客填写注册表单、接受服务条款并点击“下一步”。"
+          },
+          {
+            "keyword": "THEN",
+            "content": "系统保存账号并创建会话，首页显示用户名和“退出登录”，刷新页面后仍保持登录。"
+          }
+        ]
+      }
+    },
+    {
+      "file": "REQ-1-user-registration.spec.ts",
+      "location": "REQ-1-user-registration.spec.ts:73:5",
+      "title": "REQ-1: reject a duplicate username without creating a signed-in session",
+      "scenario": {
+        "name": "拒绝重复用户名或邮箱",
+        "steps": [
+          {
+            "keyword": "GIVEN",
+            "content": "系统中已经存在相同的用户名或大小写不同但内容相同的邮箱。"
+          },
+          {
+            "keyword": "WHEN",
+            "content": "访客再次提交注册。"
+          },
+          {
+            "keyword": "THEN",
+            "content": "系统返回重复账号错误，原账号保持不变且不产生新的账号或会话。"
+          }
+        ]
+      }
+    },
+    {
+      "file": "REQ-1-user-registration.spec.ts",
+      "location": "REQ-1-user-registration.spec.ts:85:5",
+      "title": "REQ-1: reject duplicate email with a different username",
+      "scenario": {
+        "name": "拒绝重复用户名或邮箱",
+        "steps": [
+          {
+            "keyword": "GIVEN",
+            "content": "系统中已经存在相同的用户名或大小写不同但内容相同的邮箱。"
+          },
+          {
+            "keyword": "WHEN",
+            "content": "访客再次提交注册。"
+          },
+          {
+            "keyword": "THEN",
+            "content": "系统返回重复账号错误，原账号保持不变且不产生新的账号或会话。"
+          }
+        ]
+      }
+    },
+    {
+      "file": "REQ-1-user-registration.spec.ts",
+      "location": "REQ-1-user-registration.spec.ts:97:5",
+      "title": "REQ-1: reject mismatched passwords without creating a signed-in session",
+      "scenario": {
+        "name": "拒绝缺失或格式错误的资料",
+        "steps": [
+          {
+            "keyword": "GIVEN",
+            "content": "注册资料存在必填项缺失、格式错误、日期无效、弱密码、确认密码不一致或未接受协议。"
+          },
+          {
+            "keyword": "WHEN",
+            "content": "访客提交注册表单。"
+          },
+          {
+            "keyword": "THEN",
+            "content": "页面显示对应错误，系统不创建账号，也不创建登录会话。"
+          }
+        ]
+      }
+    },
+    {
+      "file": "REQ-1-user-registration.spec.ts",
+      "location": "REQ-1-user-registration.spec.ts:105:5",
+      "title": "REQ-1: reject missing required registration values before creating a session",
+      "scenario": {
+        "name": "拒绝缺失或格式错误的资料",
+        "steps": [
+          {
+            "keyword": "GIVEN",
+            "content": "注册资料存在必填项缺失、格式错误、日期无效、弱密码、确认密码不一致或未接受协议。"
+          },
+          {
+            "keyword": "WHEN",
+            "content": "访客提交注册表单。"
+          },
+          {
+            "keyword": "THEN",
+            "content": "页面显示对应错误，系统不创建账号，也不创建登录会话。"
+          }
+        ]
+      }
+    },
+    {
+      "file": "REQ-1-user-registration.spec.ts",
+      "location": "REQ-1-user-registration.spec.ts:121:5",
+      "title": "REQ-1: reject malformed username, email, or password without signing in",
+      "scenario": {
+        "name": "拒绝缺失或格式错误的资料",
+        "steps": [
+          {
+            "keyword": "GIVEN",
+            "content": "注册资料存在必填项缺失、格式错误、日期无效、弱密码、确认密码不一致或未接受协议。"
+          },
+          {
+            "keyword": "WHEN",
+            "content": "访客提交注册表单。"
+          },
+          {
+            "keyword": "THEN",
+            "content": "页面显示对应错误，系统不创建账号，也不创建登录会话。"
+          }
+        ]
+      }
+    },
+    {
+      "file": "REQ-2-user-login.spec.ts",
+      "location": "REQ-2-user-login.spec.ts:13:5",
+      "title": "REQ-2: sign in with a valid username and password",
+      "scenario": {
+        "name": "使用用户名登录并恢复会话",
+        "steps": [
+          {
+            "keyword": "GIVEN",
+            "content": "系统中存在一个已注册账号，访客当前未登录。"
+          },
+          {
+            "keyword": "WHEN",
+            "content": "访客使用带有可选首尾空格的用户名和正确密码登录。"
+          },
+          {
+            "keyword": "THEN",
+            "content": "首页显示保存的用户名和“退出登录”，刷新页面后会话仍然有效。"
+          }
+        ]
+      }
+    },
+    {
+      "file": "REQ-2-user-login.spec.ts",
+      "location": "REQ-2-user-login.spec.ts:25:5",
+      "title": "REQ-2: sign in with a case-insensitive email and password",
+      "scenario": {
+        "name": "使用邮箱登录",
+        "steps": [
+          {
+            "keyword": "GIVEN",
+            "content": "系统中存在一个带有有效邮箱的已注册账号。"
+          },
+          {
+            "keyword": "WHEN",
+            "content": "访客使用大小写不同的邮箱和正确密码登录。"
+          },
+          {
+            "keyword": "THEN",
+            "content": "系统识别同一账号并建立登录会话。"
+          }
+        ]
+      }
+    },
+    {
+      "file": "REQ-2-user-login.spec.ts",
+      "location": "REQ-2-user-login.spec.ts:35:5",
+      "title": "REQ-2: reject wrong password and incomplete credentials with the same generic error",
+      "scenario": {
+        "name": "拒绝无效凭据",
+        "steps": [
+          {
+            "keyword": "GIVEN",
+            "content": "登录标识或密码为空、不存在或不正确。"
+          },
+          {
+            "keyword": "WHEN",
+            "content": "访客点击“登录”。"
+          },
+          {
+            "keyword": "THEN",
+            "content": "页面显示统一的登录失败提示，不透露账号是否存在，也不创建会话。"
+          }
+        ]
+      }
+    },
+    {
+      "file": "REQ-2-user-login.spec.ts",
+      "location": "REQ-2-user-login.spec.ts:57:5",
+      "title": "REQ-2: reject an unknown account and stay logged out",
+      "scenario": {
+        "name": "拒绝无效凭据",
+        "steps": [
+          {
+            "keyword": "GIVEN",
+            "content": "登录标识或密码为空、不存在或不正确。"
+          },
+          {
+            "keyword": "WHEN",
+            "content": "访客点击“登录”。"
+          },
+          {
+            "keyword": "THEN",
+            "content": "页面显示统一的登录失败提示，不透露账号是否存在，也不创建会话。"
+          }
+        ]
+      }
+    }
+  ]
+}
