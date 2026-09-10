@@ -313,31 +313,26 @@ export async function runTddRepair(
         finalOutput = result.finalOutput;
       }
     } catch (error) {
-      if (
-        !(error instanceof AgentsError) ||
-        error.state === undefined
-      ) {
-        throw error;
+      if (error instanceof AgentsError && error.state !== undefined) {
+        collectUsage(snapshotUsage(error.state.usage));
+        rawResponses.push(...error.state._modelResponses);
+        if (error instanceof MaxTurnsExceededError) continue;
       }
-      collectUsage(snapshotUsage(error.state.usage));
-      rawResponses.push(...error.state._modelResponses);
-      if (!(error instanceof MaxTurnsExceededError)) {
-        throw new GenerationArtifactError(
-          error instanceof Error ? error.message : String(error),
-          {
-            rawOutput: "",
-            usage,
-            rawResponses,
-            prompt: {
-              instructions,
-              input: promptInputs.join(
-                "\n\n===== NEXT REPAIR MODEL CALL =====\n\n",
-              ),
-            },
+      throw new GenerationArtifactError(
+        error instanceof Error ? error.message : String(error),
+        {
+          rawOutput: "",
+          usage,
+          rawResponses,
+          prompt: {
+            instructions,
+            input: promptInputs.join(
+              "\n\n===== NEXT REPAIR MODEL CALL =====\n\n",
+            ),
           },
-          { cause: error },
-        );
-      }
+        },
+        { cause: error },
+      );
     }
 
     if (workspace.repairs === repairsBeforeAttempt) {

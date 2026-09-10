@@ -164,7 +164,13 @@ describe("model configuration", () => {
             output: "failed",
           }),
         }),
-      ).rejects.toBe(stopped);
+      ).rejects.toMatchObject({
+        name: "GenerationArtifactError",
+        message: stopped.message,
+        cause: stopped,
+        usage: { requests: 0, totalTokens: 0 },
+        prompt: { input: expect.stringContaining("Current train-test result") },
+      });
       expect(run.mock.calls.at(-1)?.[0].modelSettings.timeoutMs).toBe(900_000);
     } finally {
       await runtime.close();
