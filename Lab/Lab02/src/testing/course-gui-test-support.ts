@@ -83,7 +83,10 @@ export function successFeedback(page: Page): Locator {
 export function errorSummary(page: Page): Locator {
   return page
     .locator('[role="alert"]')
-    .filter({ hasText: /correct|problem|error|invalid|required/i })
+    .filter({
+      hasText:
+        /correct|problem|error|invalid|required|already\s+(?:registered|exists)|duplicate|taken/i,
+    })
     .first();
 }
 

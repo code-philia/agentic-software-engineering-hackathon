@@ -54,7 +54,7 @@ const GUI_REPAIR_STABILITY_GUIDANCE = `For this GUI repair, implement these regi
 - Trim the email and store it lowercase. Require one non-empty local part, one at-sign, and a multi-label domain; reject whitespace, repeated dots, dot-bounded local parts, and empty or hyphen-bounded domain labels. Compare stored email addresses after the same normalization.
 - Require passwords to be 10 through 64 characters with at least one ASCII letter and one digit. Password1 and Abcdefgh1 are 9 characters and invalid. Letter case is otherwise unrestricted. Confirmation must match exactly.
 - Date of birth is optional; a supplied value must be a real YYYY-MM-DD date. Terms acceptance is required.
-- On rejection, expose visible field explanations through aria-describedby, mark invalid controls accessibly, show an alert summary, and focus the first invalid control. Clear stale errors after correction.
+- On rejection, expose visible field explanations through aria-describedby, mark invalid controls accessibly, show an alert summary, and focus the first invalid control. Make the alert summary say that there is an error, invalid input, a problem to correct, a required field, a duplicate, or an account that is already registered/exists; a neutral sentence such as only "an account with these details exists" is too ambiguous for reliable assistive feedback. Clear stale errors after correction.
 - One accessible Show/Hide action must toggle both password inputs and update its accessible action name.
 - Persist multiple normalized public accounts across reloads, reject duplicate username or email independently, never reserve identifiers from rejected submissions, and never store passwords or password-named properties.`;
 
