@@ -51,6 +51,14 @@ Validation 不替代 ARC Agent 生成的测试。它用于提供一组外部的�
 
 ARC 编译需要 Python。Web App Preview 和 Validation 需要 Node.js、npm 以及生成项目中的 backend。
 
+### 安装 Playwright 浏览器
+
+在命令行中执行以下命令，完成 Playwright 浏览器环境安装：
+
+```bash
+npx playwright install
+```
+
 ### 安装插件
 
 在 VS Code 扩展视图中搜索并安装 `ARC Visualizer`。
