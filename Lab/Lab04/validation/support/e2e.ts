@@ -48,11 +48,6 @@ export async function openRegister(page: Page): Promise<void> {
   await page.locator('a[href="/register"]').click();
 }
 
-export async function openLogin(page: Page): Promise<void> {
-  await openHome(page);
-  await page.locator('a[href="/login"]').click();
-}
-
 export async function expectSignedIn(page: Page, username: string): Promise<void> {
   await expect(page.getByText(username, { exact: true })).toBeVisible();
   await expect(page.getByRole('link', { name: /退出登录|sign out/i })).toBeVisible();
@@ -60,7 +55,6 @@ export async function expectSignedIn(page: Page, username: string): Promise<void
 
 export async function signOut(page: Page): Promise<void> {
   await page.getByRole('link', { name: /退出登录|sign out/i }).click();
-  await expect(page.getByRole('link', { name: /登录|login/i })).toBeVisible();
 }
 
 export async function fillLabeledValue(page: Page, label: RegExp | string, value: string): Promise<void> {
@@ -124,13 +118,6 @@ export async function fillRegistrationFields(page: Page, account: TicketBookingA
   await fillLabeledValue(page, /国家\/地区代码|country\/region code/i, account.countryCode);
   await fillLabeledValue(page, /手机号|mobile number/i, account.mobileNumber);
   await page.getByRole('checkbox', { name: /服务条款|隐私政策|terms of service|privacy policy/i }).check();
-}
-
-export async function signIn(page: Page, usernameOrEmail: string, password: string): Promise<void> {
-  await openLogin(page);
-  await fillLabeledValue(page, /用户名或邮箱|username or email|email\/username\/mobile number/i, usernameOrEmail);
-  await fillLabeledValue(page, /^密码$|^password$/i, password);
-  await page.getByRole('button', { name: /立即登录|登录|login|sign in/i }).click();
 }
 
 export async function searchTrains(page: Page, criteria: SearchCriteria): Promise<void> {

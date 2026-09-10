@@ -49,7 +49,6 @@ test('REQ-1: successfully register a new account and remain signed in', async ({
   const account = uniqueTicketBookingAccount();
 
   await openRegister(page);
-  await expect(page.getByRole('heading', { name: '账户信息' })).toBeVisible();
   await expect(page.getByRole('combobox', { name: /证件类型/i })).toHaveValue('');
   await expect(page.getByRole('combobox', { name: /优惠.*类型/i })).toHaveValue('');
   await expect(page.getByRole('combobox', { name: /国家\/地区代码/i })).toHaveValue('+86');

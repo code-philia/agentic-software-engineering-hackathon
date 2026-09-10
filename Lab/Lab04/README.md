@@ -113,7 +113,7 @@ Lab04/
 - `output/`
   - 实验工作区目录；
   - 用于接收 ARC 生成的项目和 `.arc` 数据；
-  - 初始为空；
+  - 初始为空，因此需要自行构建；
   - 推荐在 VS Code 中打开该目录作为本次实验的 workspace；
   - 本实验的 `README.md` 也位于 `Lab04/` 下。
 - `ticketbooking-quickstart/`
