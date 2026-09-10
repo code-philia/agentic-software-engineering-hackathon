@@ -124,7 +124,7 @@ export interface ScenarioRunResult {
   readonly modelPerformance: ModelRunSummary;
 }
 
-const MAX_REFERENCE_FEEDBACK_CHARACTERS = 6_000;
+const MAX_REFERENCE_FEEDBACK_CHARACTERS = 12_000;
 
 function safePromptPreview(
   role: "implementation" | "tests",

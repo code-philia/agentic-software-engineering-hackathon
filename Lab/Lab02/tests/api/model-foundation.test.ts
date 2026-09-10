@@ -54,7 +54,7 @@ async function temporaryDirectory(): Promise<string> {
 }
 
 describe("model configuration", () => {
-  it("uses deterministic sampling for every model stage", async () => {
+  it("uses expanded output budgets for every generated artifact stage", async () => {
     const runtime = new CourseModelRuntime({
       envFile: "/unused/model.env",
       baseUrl: "https://provider.example/v1",
@@ -63,7 +63,7 @@ describe("model configuration", () => {
     });
 
     try {
-      expect(runtime.modelSettings.temperature).toBe(0);
+      expect(runtime.modelSettings.temperature).toBe(0.2);
       expect(runtime.modelSettingsFor("doctor").timeoutMs).toBe(180_000);
       expect(runtime.modelSettingsFor("direct").timeoutMs).toBe(300_000);
       expect(runtime.modelSettingsFor("test-generation").timeoutMs).toBe(
@@ -73,9 +73,14 @@ describe("model configuration", () => {
       expect(runtime.modelSettingsFor("implementation-repair").timeoutMs).toBe(
         900_000,
       );
-      expect(runtime.modelSettingsFor("test-generation").maxTokens).toBe(8_192);
-      expect(runtime.modelSettingsFor("test-repair").maxTokens).toBe(12_000);
-      expect(runtime.modelSettingsFor("direct").maxTokens).toBe(12_000);
+      expect(runtime.modelSettingsFor("direct").maxTokens).toBe(16_384);
+      expect(runtime.modelSettingsFor("test-generation").maxTokens).toBe(
+        16_384,
+      );
+      expect(runtime.modelSettingsFor("test-repair").maxTokens).toBe(16_384);
+      expect(runtime.modelSettingsFor("implementation-repair").maxTokens).toBe(
+        16_384,
+      );
       expect(runtime.modelSettings.retry?.maxRetries).toBe(1);
       expect(runtime.executionPolicy.scenarioDeadlineMs).toEqual({
         api: 2_700_000,
@@ -303,7 +308,7 @@ describe("model configuration", () => {
         model: "glm-5.3",
       }),
     ).toMatchObject({
-      id: "closest-non-thinking-v1",
+      id: "classroom-model-policy-v2",
       mode: "lowest-supported-thinking",
       temperature: 0,
       reasoningEffort: "low",
@@ -417,7 +422,7 @@ describe("model configuration", () => {
     });
   });
 
-  it("supports dated and undated DeepSeek aliases with the same policy", () => {
+  it("enables light thinking and modest sampling for DeepSeek aliases", () => {
     for (const model of [
       "deepseek-v4-pro",
       "deepseek-v4-pro-0813",
@@ -433,9 +438,11 @@ describe("model configuration", () => {
         }),
       ).toMatchObject({
         model,
-        mode: "non-thinking",
-        temperature: 0,
-        providerData: { thinking: { type: "disabled" } },
+        id: "classroom-model-policy-v2",
+        mode: "lowest-supported-thinking",
+        temperature: 0.2,
+        reasoningEffort: "low",
+        providerData: { thinking: { type: "enabled" } },
       });
     }
   });
