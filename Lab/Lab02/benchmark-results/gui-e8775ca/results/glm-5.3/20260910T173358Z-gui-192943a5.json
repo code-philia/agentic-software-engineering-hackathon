@@ -1,0 +1,87 @@
+{
+  "outcome": "RUN_ERROR",
+  "runId": "20260910T173358Z-gui-192943a5",
+  "runRoot": "/private/tmp/lab02-gui-bench-e8775ca-r2/glm-5.3/Lab/Lab02/runs/20260910T173358Z-gui-192943a5",
+  "workspaceRoot": "/private/tmp/lab02-gui-bench-e8775ca-r2/glm-5.3/Lab/Lab02/workspace/gui",
+  "modelConfiguration": {
+    "envFile": ".env",
+    "model": "glm-5.3",
+    "inferencePolicy": {
+      "id": "closest-non-thinking-v1",
+      "model": "glm-5.3",
+      "mode": "lowest-supported-thinking",
+      "temperature": 0,
+      "reasoningEffort": "low",
+      "providerData": {}
+    }
+  },
+  "modelPerformance": {
+    "model": "glm-5.3",
+    "stages": 3,
+    "durationMs": 148219,
+    "requests": 3,
+    "inputTokens": 9439,
+    "outputTokens": 8607,
+    "totalTokens": 18046,
+    "calls": [
+      {
+        "stage": "direct",
+        "durationMs": 51878,
+        "usage": {
+          "requests": 1,
+          "inputTokens": 729,
+          "outputTokens": 2859,
+          "totalTokens": 3588,
+          "requestUsage": [
+            {
+              "inputTokens": 729,
+              "outputTokens": 2859,
+              "totalTokens": 3588
+            }
+          ]
+        },
+        "status": "completed"
+      },
+      {
+        "stage": "test_generation",
+        "durationMs": 66923,
+        "usage": {
+          "requests": 1,
+          "inputTokens": 2955,
+          "outputTokens": 3760,
+          "totalTokens": 6715,
+          "requestUsage": [
+            {
+              "inputTokens": 2955,
+              "outputTokens": 3760,
+              "totalTokens": 6715
+            }
+          ]
+        },
+        "status": "completed"
+      },
+      {
+        "stage": "test_repair",
+        "durationMs": 29418,
+        "usage": {
+          "requests": 1,
+          "inputTokens": 5755,
+          "outputTokens": 1988,
+          "totalTokens": 7743,
+          "requestUsage": [
+            {
+              "inputTokens": 5755,
+              "outputTokens": 1988,
+              "totalTokens": 7743
+            }
+          ]
+        },
+        "status": "completed"
+      }
+    ]
+  },
+  "error": {
+    "name": "ModelBehaviorError",
+    "message": "Chat Completions response terminated with finish_reason='length' but produced no assistant text, tool call, or refusal."
+  }
+}

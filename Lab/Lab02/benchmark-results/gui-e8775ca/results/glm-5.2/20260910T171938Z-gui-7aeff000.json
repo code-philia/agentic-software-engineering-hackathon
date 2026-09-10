@@ -1,0 +1,35 @@
+{
+  "outcome": "RUN_ERROR",
+  "runId": "20260910T171938Z-gui-7aeff000",
+  "runRoot": "/private/tmp/lab02-gui-bench-e8775ca/glm-5.2/Lab/Lab02/runs/20260910T171938Z-gui-7aeff000",
+  "workspaceRoot": "/private/tmp/lab02-gui-bench-e8775ca/glm-5.2/Lab/Lab02/workspace/gui",
+  "modelConfiguration": {
+    "envFile": ".env",
+    "model": "glm-5.2",
+    "inferencePolicy": {
+      "id": "closest-non-thinking-v1",
+      "model": "glm-5.2",
+      "mode": "non-thinking",
+      "temperature": 0,
+      "providerData": {
+        "thinking": {
+          "type": "disabled"
+        }
+      }
+    }
+  },
+  "modelPerformance": {
+    "model": "glm-5.2",
+    "stages": 0,
+    "durationMs": 0,
+    "requests": 0,
+    "inputTokens": 0,
+    "outputTokens": 0,
+    "totalTokens": 0,
+    "calls": []
+  },
+  "error": {
+    "name": "Error",
+    "message": "400 unexpected EOF (request id: 2026091101205650150236768548)"
+  }
+}

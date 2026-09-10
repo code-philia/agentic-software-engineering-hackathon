@@ -1,0 +1,438 @@
+{
+  "outcome": "INVALID_TRAIN_SUITE",
+  "runId": "20260910T171956Z-gui-f5577b63",
+  "runRoot": "/private/tmp/lab02-gui-bench-e8775ca/deepseek-v4-flash/Lab/Lab02/runs/20260910T171956Z-gui-f5577b63",
+  "workspaceRoot": "/private/tmp/lab02-gui-bench-e8775ca/deepseek-v4-flash/Lab/Lab02/workspace/gui",
+  "directValidation": {
+    "passed": 19,
+    "total": 36,
+    "durationMs": 13533,
+    "categories": [
+      {
+        "name": "Structure and accessibility",
+        "passed": 4,
+        "total": 9
+      },
+      {
+        "name": "Form validation",
+        "passed": 4,
+        "total": 9
+      },
+      {
+        "name": "Interaction and state",
+        "passed": 5,
+        "total": 10
+      },
+      {
+        "name": "Stable visual requirements",
+        "passed": 6,
+        "total": 8
+      }
+    ],
+    "checks": [
+      {
+        "name": "exposes the registration purpose with semantic headings and form",
+        "category": "Structure and accessibility",
+        "passed": true
+      },
+      {
+        "name": "associates accessible labels with every data field",
+        "category": "Structure and accessibility",
+        "passed": true
+      },
+      {
+        "name": "uses suitable input types",
+        "category": "Structure and accessibility",
+        "passed": true
+      },
+      {
+        "name": "provides useful autocomplete metadata",
+        "category": "Structure and accessibility",
+        "passed": true
+      },
+      {
+        "name": "provides accessible terms and password visibility controls",
+        "category": "Structure and accessibility",
+        "passed": false
+      },
+      {
+        "name": "associates visible explanations with invalid controls",
+        "category": "Structure and accessibility",
+        "passed": false
+      },
+      {
+        "name": "exposes important feedback through live or alert semantics",
+        "category": "Structure and accessibility",
+        "passed": false
+      },
+      {
+        "name": "shows an error summary when submission has problems",
+        "category": "Structure and accessibility",
+        "passed": false
+      },
+      {
+        "name": "focuses the first invalid control after submission",
+        "category": "Structure and accessibility",
+        "passed": false
+      },
+      {
+        "name": "reports all missing requirements in one submission",
+        "category": "Form validation",
+        "passed": false
+      },
+      {
+        "name": "accepts username length and character boundaries",
+        "category": "Form validation",
+        "passed": true
+      },
+      {
+        "name": "rejects usernames outside the public format",
+        "category": "Form validation",
+        "passed": false
+      },
+      {
+        "name": "rejects clearly malformed email addresses",
+        "category": "Form validation",
+        "passed": false
+      },
+      {
+        "name": "enforces password length, character rules, and exact confirmation",
+        "category": "Form validation",
+        "passed": false
+      },
+      {
+        "name": "accepts a real optional date and requires terms",
+        "category": "Form validation",
+        "passed": false
+      },
+      {
+        "name": "trims and normalizes identity input",
+        "category": "Form validation",
+        "passed": true
+      },
+      {
+        "name": "accepts a password at the maximum length",
+        "category": "Form validation",
+        "passed": true
+      },
+      {
+        "name": "allows the optional date of birth to remain empty",
+        "category": "Form validation",
+        "passed": true
+      },
+      {
+        "name": "reveals and hides both password fields",
+        "category": "Interaction and state",
+        "passed": false
+      },
+      {
+        "name": "completes valid registration with readable success feedback",
+        "category": "Interaction and state",
+        "passed": true
+      },
+      {
+        "name": "saves normalized public details",
+        "category": "Interaction and state",
+        "passed": true
+      },
+      {
+        "name": "rejects a case-insensitive username duplicate after reload",
+        "category": "Interaction and state",
+        "passed": false
+      },
+      {
+        "name": "rejects a normalized email duplicate after reload",
+        "category": "Interaction and state",
+        "passed": false
+      },
+      {
+        "name": "does not reserve details from a rejected attempt",
+        "category": "Interaction and state",
+        "passed": true
+      },
+      {
+        "name": "never stores either password field",
+        "category": "Interaction and state",
+        "passed": true
+      },
+      {
+        "name": "updates the password visibility control's accessible action",
+        "category": "Interaction and state",
+        "passed": false
+      },
+      {
+        "name": "clears stale field errors after corrected submission",
+        "category": "Interaction and state",
+        "passed": false
+      },
+      {
+        "name": "remembers multiple distinct successful accounts",
+        "category": "Interaction and state",
+        "passed": true
+      },
+      {
+        "name": "presents a full-width dark-blue header",
+        "category": "Stable visual requirements",
+        "passed": false
+      },
+      {
+        "name": "uses a pale background around a centered white panel",
+        "category": "Stable visual requirements",
+        "passed": true
+      },
+      {
+        "name": "uses a restrained orange accent and primary action",
+        "category": "Stable visual requirements",
+        "passed": false
+      },
+      {
+        "name": "provides a clearly visible keyboard focus indicator",
+        "category": "Stable visual requirements",
+        "passed": true
+      },
+      {
+        "name": "shows error and success states with text rather than color alone",
+        "category": "Stable visual requirements",
+        "passed": true
+      },
+      {
+        "name": "remains operable without horizontal scrolling at 375 pixels",
+        "category": "Stable visual requirements",
+        "passed": true
+      },
+      {
+        "name": "positions labels above their text controls",
+        "category": "Stable visual requirements",
+        "passed": true
+      },
+      {
+        "name": "changes related desktop fields to one column on a narrow screen",
+        "category": "Stable visual requirements",
+        "passed": true
+      }
+    ]
+  },
+  "referenceTrainResult": {
+    "status": "RED",
+    "summary": "9/11 train tests passed.",
+    "total": 11,
+    "passed": 9,
+    "failed": 2,
+    "durationMs": 7548,
+    "failures": [
+      {
+        "name": "password boundaries",
+        "message": "Error: expect(locator).toBeVisible() failed\nLocator: locator('[role=\"status\"], [role=\"alert\"], [aria-live]').filter({ hasText: /success|account.{0,30}created|welcome/i }).last()\nExpected: visible\nTimeout: 2000ms\nError: element(s) not found\nCall log:\n  - Expect \"toBeVisible\" locator('[role=\"status\"], [role=\"alert\"], [aria-live]').filter({ hasText: /success|account.{0,30}created|welcome/i }).last() with timeout 2000ms\n  - waiting for locator('[role=\"status\"], [role=\"alert\"], [aria-live]').filter({ hasText: /success|account.{0,30}created|welcome/i }).last()"
+      },
+      {
+        "name": "show/hide password toggle affects both fields and updates accessible name",
+        "message": "Error: expect(received).not.toBe(expected) // Object.is equality\nExpected: not null"
+      }
+    ]
+  },
+  "finalTrainResult": {
+    "status": "RED",
+    "summary": "9/11 train tests passed.",
+    "total": 11,
+    "passed": 9,
+    "failed": 2,
+    "durationMs": 7548,
+    "failures": [
+      {
+        "name": "password boundaries",
+        "message": "Error: expect(locator).toBeVisible() failed\nLocator: locator('[role=\"status\"], [role=\"alert\"], [aria-live]').filter({ hasText: /success|account.{0,30}created|welcome/i }).last()\nExpected: visible\nTimeout: 2000ms\nError: element(s) not found\nCall log:\n  - Expect \"toBeVisible\" locator('[role=\"status\"], [role=\"alert\"], [aria-live]').filter({ hasText: /success|account.{0,30}created|welcome/i }).last() with timeout 2000ms\n  - waiting for locator('[role=\"status\"], [role=\"alert\"], [aria-live]').filter({ hasText: /success|account.{0,30}created|welcome/i }).last()"
+      },
+      {
+        "name": "show/hide password toggle affects both fields and updates accessible name",
+        "message": "Error: expect(received).not.toBe(expected) // Object.is equality\nExpected: not null"
+      }
+    ]
+  },
+  "testRepairs": 3,
+  "repairs": 0,
+  "modelUsage": {
+    "direct": {
+      "requests": 1,
+      "inputTokens": 862,
+      "outputTokens": 3869,
+      "totalTokens": 4731,
+      "requestUsage": [
+        {
+          "inputTokens": 862,
+          "outputTokens": 3869,
+          "totalTokens": 4731
+        }
+      ]
+    },
+    "testGeneration": {
+      "requests": 1,
+      "inputTokens": 3158,
+      "outputTokens": 2498,
+      "totalTokens": 5656,
+      "requestUsage": [
+        {
+          "inputTokens": 3158,
+          "outputTokens": 2498,
+          "totalTokens": 5656
+        }
+      ]
+    },
+    "testRepairs": [
+      {
+        "requests": 1,
+        "inputTokens": 7100,
+        "outputTokens": 2517,
+        "totalTokens": 9617,
+        "requestUsage": [
+          {
+            "inputTokens": 7100,
+            "outputTokens": 2517,
+            "totalTokens": 9617
+          }
+        ]
+      },
+      {
+        "requests": 1,
+        "inputTokens": 6704,
+        "outputTokens": 2524,
+        "totalTokens": 9228,
+        "requestUsage": [
+          {
+            "inputTokens": 6704,
+            "outputTokens": 2524,
+            "totalTokens": 9228
+          }
+        ]
+      },
+      {
+        "requests": 1,
+        "inputTokens": 6924,
+        "outputTokens": 2477,
+        "totalTokens": 9401,
+        "requestUsage": [
+          {
+            "inputTokens": 6924,
+            "outputTokens": 2477,
+            "totalTokens": 9401
+          }
+        ]
+      }
+    ]
+  },
+  "modelPerformance": {
+    "model": "deepseek-v4-flash",
+    "stages": 5,
+    "durationMs": 68718,
+    "requests": 5,
+    "inputTokens": 24748,
+    "outputTokens": 13885,
+    "totalTokens": 38633,
+    "calls": [
+      {
+        "stage": "direct",
+        "durationMs": 18879,
+        "usage": {
+          "requests": 1,
+          "inputTokens": 862,
+          "outputTokens": 3869,
+          "totalTokens": 4731,
+          "requestUsage": [
+            {
+              "inputTokens": 862,
+              "outputTokens": 3869,
+              "totalTokens": 4731
+            }
+          ]
+        },
+        "status": "completed"
+      },
+      {
+        "stage": "test_generation",
+        "durationMs": 13590,
+        "usage": {
+          "requests": 1,
+          "inputTokens": 3158,
+          "outputTokens": 2498,
+          "totalTokens": 5656,
+          "requestUsage": [
+            {
+              "inputTokens": 3158,
+              "outputTokens": 2498,
+              "totalTokens": 5656
+            }
+          ]
+        },
+        "status": "completed"
+      },
+      {
+        "stage": "test_repair",
+        "durationMs": 11748,
+        "usage": {
+          "requests": 1,
+          "inputTokens": 7100,
+          "outputTokens": 2517,
+          "totalTokens": 9617,
+          "requestUsage": [
+            {
+              "inputTokens": 7100,
+              "outputTokens": 2517,
+              "totalTokens": 9617
+            }
+          ]
+        },
+        "status": "completed"
+      },
+      {
+        "stage": "test_repair",
+        "durationMs": 12490,
+        "usage": {
+          "requests": 1,
+          "inputTokens": 6704,
+          "outputTokens": 2524,
+          "totalTokens": 9228,
+          "requestUsage": [
+            {
+              "inputTokens": 6704,
+              "outputTokens": 2524,
+              "totalTokens": 9228
+            }
+          ]
+        },
+        "status": "completed"
+      },
+      {
+        "stage": "test_repair",
+        "durationMs": 12011,
+        "usage": {
+          "requests": 1,
+          "inputTokens": 6924,
+          "outputTokens": 2477,
+          "totalTokens": 9401,
+          "requestUsage": [
+            {
+              "inputTokens": 6924,
+              "outputTokens": 2477,
+              "totalTokens": 9401
+            }
+          ]
+        },
+        "status": "completed"
+      }
+    ]
+  },
+  "modelConfiguration": {
+    "envFile": ".env",
+    "model": "deepseek-v4-flash",
+    "inferencePolicy": {
+      "id": "closest-non-thinking-v1",
+      "model": "deepseek-v4-flash",
+      "mode": "non-thinking",
+      "temperature": 0,
+      "providerData": {
+        "thinking": {
+          "type": "disabled"
+        }
+      }
+    }
+  }
+}

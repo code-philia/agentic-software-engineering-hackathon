@@ -127,14 +127,23 @@ export function summarizeRuns(
 
 async function resultFiles(root: string): Promise<readonly string[]> {
   const absolute = resolve(root);
-  if (basename(absolute) === "result.json") return [absolute];
+  if (basename(absolute).endsWith(".json")) return [absolute];
   const entries = await readdir(absolute, { withFileTypes: true });
   if (entries.some((entry) => entry.isFile() && entry.name === "result.json")) {
     return [join(absolute, "result.json")];
   }
-  return entries
-    .filter((entry) => entry.isDirectory() && entry.name.includes("-gui-"))
-    .map((entry) => join(absolute, entry.name, "result.json"));
+  const copiedResults = entries
+    .filter(
+      (entry) =>
+        entry.isFile() && entry.name.includes("-gui-") && entry.name.endsWith(".json"),
+    )
+    .map((entry) => join(absolute, entry.name));
+  const nested = await Promise.all(
+    entries
+      .filter((entry) => entry.isDirectory())
+      .map((entry) => resultFiles(join(absolute, entry.name))),
+  );
+  return [...copiedResults, ...nested.flat()];
 }
 
 export async function loadRuns(

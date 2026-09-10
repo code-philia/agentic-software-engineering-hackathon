@@ -1,0 +1,113 @@
+{
+  "outcome": "GENERATION_ERROR",
+  "runId": "20260910T173436Z-gui-b280952b",
+  "runRoot": "/private/tmp/lab02-gui-bench-e8775ca-r2/qwen3.7-plus/Lab/Lab02/runs/20260910T173436Z-gui-b280952b",
+  "workspaceRoot": "/private/tmp/lab02-gui-bench-e8775ca-r2/qwen3.7-plus/Lab/Lab02/workspace/gui",
+  "modelConfiguration": {
+    "envFile": ".env",
+    "model": "qwen3.7-plus",
+    "inferencePolicy": {
+      "id": "closest-non-thinking-v1",
+      "model": "qwen3.7-plus",
+      "mode": "non-thinking",
+      "temperature": 0,
+      "providerData": {
+        "enable_thinking": false
+      }
+    }
+  },
+  "modelPerformance": {
+    "model": "qwen3.7-plus",
+    "stages": 3,
+    "durationMs": 243654,
+    "requests": 8,
+    "inputTokens": 90901,
+    "outputTokens": 22686,
+    "totalTokens": 113587,
+    "calls": [
+      {
+        "stage": "direct",
+        "durationMs": 37446,
+        "usage": {
+          "requests": 1,
+          "inputTokens": 870,
+          "outputTokens": 3030,
+          "totalTokens": 3900,
+          "requestUsage": [
+            {
+              "inputTokens": 870,
+              "outputTokens": 3030,
+              "totalTokens": 3900
+            }
+          ]
+        },
+        "status": "completed"
+      },
+      {
+        "stage": "test_generation",
+        "durationMs": 31722,
+        "usage": {
+          "requests": 1,
+          "inputTokens": 3174,
+          "outputTokens": 2808,
+          "totalTokens": 5982,
+          "requestUsage": [
+            {
+              "inputTokens": 3174,
+              "outputTokens": 2808,
+              "totalTokens": 5982
+            }
+          ]
+        },
+        "status": "completed"
+      },
+      {
+        "stage": "test_repair",
+        "durationMs": 174486,
+        "usage": {
+          "requests": 6,
+          "inputTokens": 86857,
+          "outputTokens": 16848,
+          "totalTokens": 103705,
+          "requestUsage": [
+            {
+              "inputTokens": 7315,
+              "outputTokens": 2808,
+              "totalTokens": 10123
+            },
+            {
+              "inputTokens": 10176,
+              "outputTokens": 2808,
+              "totalTokens": 12984
+            },
+            {
+              "inputTokens": 13037,
+              "outputTokens": 2808,
+              "totalTokens": 15845
+            },
+            {
+              "inputTokens": 15898,
+              "outputTokens": 2808,
+              "totalTokens": 18706
+            },
+            {
+              "inputTokens": 18787,
+              "outputTokens": 2808,
+              "totalTokens": 21595
+            },
+            {
+              "inputTokens": 21644,
+              "outputTokens": 2808,
+              "totalTokens": 24452
+            }
+          ]
+        },
+        "status": "failed"
+      }
+    ]
+  },
+  "error": {
+    "name": "GenerationArtifactError",
+    "message": "Max turns (6) exceeded"
+  }
+}
