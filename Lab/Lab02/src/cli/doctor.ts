@@ -11,8 +11,6 @@ import { parseCommonOptions } from "./arguments.js";
 import { writeJsonFile } from "../run/workspace.js";
 import { installShutdownSignalHandlers } from "./shutdown.js";
 
-const REQUEST_TIMEOUT_MS = 120_000;
-
 function safeErrorMessage(error: unknown, apiKey?: string): string {
   const raw = error instanceof Error ? error.message : String(error);
   return raw
@@ -66,11 +64,14 @@ async function main(): Promise<void> {
       instructions:
         "Call course_readiness_check exactly once with value ready. After it returns, reply with the single word READY.",
       tools: [readinessTool],
-      modelSettings: { ...runtime.modelSettings, toolChoice: "required" },
+      modelSettings: {
+        ...runtime.modelSettingsFor("doctor"),
+        toolChoice: "required",
+      },
     });
     const requestSignal = AbortSignal.any([
       shutdown.signal,
-      AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+      AbortSignal.timeout(runtime.executionPolicy.modelCallTimeoutMs.doctor),
     ]);
     const result = await runtime.runner.run(
       agent,

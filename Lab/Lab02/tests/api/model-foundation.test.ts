@@ -4,9 +4,16 @@ import { join } from "node:path";
 import { Writable } from "node:stream";
 
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { APIConnectionTimeoutError } from "openai";
 
 import { AgentFileWorkspace } from "../../src/agents/file-workspace.js";
-import { RepairWorkspace } from "../../src/agents/repair.js";
+import {
+  acceptedWriteToolUseBehavior,
+  generateDirectImplementation,
+  generateTrainTests,
+  repairTrainTests,
+} from "../../src/agents/generate.js";
+import { RepairWorkspace, runTddRepair } from "../../src/agents/repair.js";
 import { testAuthoringInstructions } from "../../src/agents/test-authoring-instructions.js";
 import {
   CourseModelRuntime,
@@ -15,7 +22,6 @@ import {
 import {
   loadModelConfig,
   ModelConfigError,
-  supportedModels,
 } from "../../src/config/model-config.js";
 import {
   parseCommonOptions,
@@ -50,13 +56,27 @@ describe("model configuration", () => {
       envFile: "/unused/model.env",
       baseUrl: "https://provider.example/v1",
       apiKey: "secret-for-test",
-      model: "deepseek-v4-flash",
+      model: "deepseek-v4-flash-0731",
     });
 
     try {
       expect(runtime.modelSettings.temperature).toBe(0);
-      expect(runtime.modelSettings.timeoutMs).toBe(120_000);
+      expect(runtime.modelSettingsFor("doctor").timeoutMs).toBe(180_000);
+      expect(runtime.modelSettingsFor("direct").timeoutMs).toBe(300_000);
+      expect(runtime.modelSettingsFor("test-generation").timeoutMs).toBe(
+        900_000,
+      );
+      expect(runtime.modelSettingsFor("test-repair").timeoutMs).toBe(900_000);
+      expect(runtime.modelSettingsFor("implementation-repair").timeoutMs).toBe(
+        900_000,
+      );
+      expect(runtime.modelSettingsFor("test-generation").maxTokens).toBe(8_192);
+      expect(runtime.modelSettingsFor("direct").maxTokens).toBe(12_000);
       expect(runtime.modelSettings.retry?.maxRetries).toBe(1);
+      expect(runtime.executionPolicy.scenarioDeadlineMs).toEqual({
+        api: 2_700_000,
+        gui: 1_800_000,
+      });
     } finally {
       await runtime.close();
     }
@@ -80,17 +100,178 @@ describe("model configuration", () => {
     }
   });
 
-  it("maps all twelve supported model names to an explicit policy", () => {
-    expect(supportedModels).toHaveLength(12);
-    for (const model of supportedModels) {
-      expect(
-        resolveInferencePolicy({
-          envFile: "/unused/model.env",
-          baseUrl: "https://provider.example/v1",
-          apiKey: "secret-for-test",
-          model,
+  it("selects the stage timeout on every generation and repair agent path", async () => {
+    const runtime = new CourseModelRuntime({
+      envFile: "/unused/model.env",
+      baseUrl: "https://provider.example/v1",
+      apiKey: "secret-for-test",
+      model: "qwen3.8-max",
+    });
+    const directory = await temporaryDirectory();
+    const stopped = new Error("stop before model request");
+    const run = vi.spyOn(runtime.runner, "run").mockRejectedValue(stopped);
+    const baseInput = {
+      scenario: "api" as const,
+      publicBrief: "Register a user.",
+      executionContract: "Export a handler.",
+      artifactPath: join(directory, "artifact.ts"),
+    };
+
+    try {
+      await expect(generateDirectImplementation(runtime, baseInput)).rejects.toBe(
+        stopped,
+      );
+      expect(run.mock.calls.at(-1)?.[0].modelSettings.timeoutMs).toBe(300_000);
+
+      await expect(generateTrainTests(runtime, baseInput)).rejects.toBe(stopped);
+      expect(run.mock.calls.at(-1)?.[0].modelSettings.timeoutMs).toBe(900_000);
+
+      await expect(
+        repairTrainTests(runtime, {
+          ...baseInput,
+          currentTests: "test('registration', () => {});",
+          referenceStatus: "RED",
+          referenceFeedback: "One assertion failed.",
         }),
-      ).toMatchObject({ id: "closest-non-thinking-v1", model });
+      ).rejects.toBe(stopped);
+      expect(run.mock.calls.at(-1)?.[0].modelSettings.timeoutMs).toBe(900_000);
+
+      await expect(
+        runTddRepair(runtime, {
+          scenario: "api",
+          publicBrief: "Register a user.",
+          implementationContract: "Export a handler.",
+          implementationPath: join(directory, "implementation.ts"),
+          currentImplementation: "export default () => new Response();",
+          frozenTrainTests: "test('registration', () => {});",
+          initialTestResult: {
+            status: "RED",
+            summary: "One assertion failed.",
+            output: "failed",
+          },
+          runTrainTests: async () => ({
+            status: "RED",
+            summary: "One assertion failed.",
+            output: "failed",
+          }),
+        }),
+      ).rejects.toBe(stopped);
+      expect(run.mock.calls.at(-1)?.[0].modelSettings.timeoutMs).toBe(900_000);
+    } finally {
+      await runtime.close();
+    }
+  });
+
+  it("retries only truncation-shaped proxy 400s despite generic provider vetoes", async () => {
+    const runtime = new CourseModelRuntime({
+      envFile: "/unused/model.env",
+      baseUrl: "https://provider.example/v1",
+      apiKey: "secret-for-test",
+      model: "qwen3.8-max",
+    });
+    const retryPolicy = runtime.modelSettings.retry?.policy;
+    expect(retryPolicy).toBeTypeOf("function");
+    const context = {
+      attempt: 1,
+      maxRetries: 1,
+      stream: false,
+      providerAdvice: { suggested: false as const },
+      normalized: {
+        statusCode: 400,
+        errorCode: "proxy_error",
+        isNetworkError: false,
+        isAbort: false,
+      },
+    };
+
+    try {
+      await expect(
+        Promise.resolve(
+          retryPolicy!({
+            ...context,
+            error: new Error("provider request failed", {
+              cause: new Error("unexpected EOF while reading response"),
+            }),
+          }),
+        ),
+      ).resolves.toMatchObject({ retry: true, approveUnsafeReplay: true });
+
+      await expect(
+        Promise.resolve(
+          retryPolicy!({
+            ...context,
+            error: new Error("invalid request payload"),
+          }),
+        ),
+      ).resolves.toMatchObject({ retry: false });
+
+      await expect(
+        Promise.resolve(
+          retryPolicy!({
+            ...context,
+            normalized: {
+              ...context.normalized,
+              errorCode: "invalid_request",
+            },
+            error: new Error("unexpected EOF while reading response"),
+          }),
+        ),
+      ).resolves.toMatchObject({ retry: false });
+
+      await expect(
+        Promise.resolve(
+          retryPolicy!({
+            ...context,
+            normalized: { ...context.normalized, statusCode: 503 },
+            error: new Error("service unavailable"),
+          }),
+        ),
+      ).resolves.toMatchObject({ retry: false });
+    } finally {
+      await runtime.close();
+    }
+  });
+
+  it("retries provider connection timeouts and gateway 524 responses once", async () => {
+    const runtime = new CourseModelRuntime({
+      envFile: "/unused/model.env",
+      baseUrl: "https://provider.example/v1",
+      apiKey: "secret-for-test",
+      model: "kimi-k3",
+    });
+    const retryPolicy = runtime.modelSettings.retry?.policy;
+    expect(retryPolicy).toBeTypeOf("function");
+    const normalized = {
+      isNetworkError: false,
+      isAbort: false,
+    };
+
+    try {
+      await expect(
+        Promise.resolve(
+          retryPolicy!({
+            attempt: 1,
+            maxRetries: 1,
+            stream: false,
+            normalized,
+            error: new APIConnectionTimeoutError(),
+          }),
+        ),
+      ).resolves.toMatchObject({ retry: true });
+
+      await expect(
+        Promise.resolve(
+          retryPolicy!({
+            attempt: 1,
+            maxRetries: 1,
+            stream: false,
+            normalized: { ...normalized, statusCode: 524 },
+            error: new Error("upstream request timed out"),
+          }),
+        ),
+      ).resolves.toMatchObject({ retry: true });
+    } finally {
+      await runtime.close();
     }
   });
 
@@ -131,7 +312,7 @@ describe("model configuration", () => {
     const envFile = join(directory, "model.env");
     await writeFile(
       envFile,
-      "base_url=https://provider.example/v1\napi_key=secret-for-test\nmodel=deepseek-v4-flash\n",
+      "base_url=https://provider.example/v1\napi_key=secret-for-test\nmodel=deepseek-v4-flash-0731\n",
       "utf8",
     );
 
@@ -140,7 +321,7 @@ describe("model configuration", () => {
 
     expect(config).toMatchObject({
       baseUrl: "https://provider.example/v1",
-      model: "deepseek-v4-flash",
+      model: "deepseek-v4-flash-0731",
     });
     expect(process.env.api_key).toBe(before);
   });
@@ -150,7 +331,7 @@ describe("model configuration", () => {
     const envFile = join(directory, "model.env");
     await writeFile(
       envFile,
-      "base_url=https://provider.example/v1\napi_key=secret-for-test\nmodel=deepseek-v4-flash\ntemperature=1\n",
+      "base_url=https://provider.example/v1\napi_key=secret-for-test\nmodel=deepseek-v4-flash-0731\ntemperature=1\n",
       "utf8",
     );
 
@@ -173,7 +354,7 @@ describe("model configuration", () => {
     });
   });
 
-  it("rejects the removed provider field with a migration message", async () => {
+  it("accepts an optional provider route for multi-channel gateways", async () => {
     const directory = await temporaryDirectory();
     const envFile = join(directory, "legacy.env");
     await writeFile(
@@ -182,9 +363,10 @@ describe("model configuration", () => {
       "utf8",
     );
 
-    await expect(loadModelConfig(envFile)).rejects.toThrow(
-      "provider is no longer configured",
-    );
+    await expect(loadModelConfig(envFile)).resolves.toMatchObject({
+      model: "qwen3.8-max",
+      provider: "qwen",
+    });
   });
 
   it("lets --model override the environment default", async () => {
@@ -210,6 +392,132 @@ describe("model configuration", () => {
       model: "glm-5.3",
       interactive: false,
     });
+  });
+
+  it("passes provider-specific model identifiers through without a local allowlist", async () => {
+    const directory = await temporaryDirectory();
+    const envFile = join(directory, "custom-model.env");
+    await writeFile(
+      envFile,
+      "base_url=https://provider.example/v1\napi_key=secret-for-test\nmodel=Vendor/DeepSeek-V4-Pro-custom\n",
+      "utf8",
+    );
+
+    const config = await loadModelConfig(envFile);
+    expect(config.model).toBe("Vendor/DeepSeek-V4-Pro-custom");
+    expect(resolveInferencePolicy(config)).toMatchObject({
+      model: "Vendor/DeepSeek-V4-Pro-custom",
+      mode: "non-thinking",
+      temperature: 0,
+      providerData: {},
+    });
+  });
+
+  it("supports dated and undated DeepSeek aliases with the same policy", () => {
+    for (const model of [
+      "deepseek-v4-pro",
+      "deepseek-v4-pro-0813",
+      "deepseek-v4-flash",
+      "deepseek-v4-flash-0731",
+    ]) {
+      expect(
+        resolveInferencePolicy({
+          envFile: "/unused/model.env",
+          baseUrl: "https://provider.example/v1",
+          apiKey: "secret-for-test",
+          model,
+        }),
+      ).toMatchObject({
+        model,
+        mode: "non-thinking",
+        temperature: 0,
+        providerData: { thinking: { type: "disabled" } },
+      });
+    }
+  });
+});
+
+describe("generated file agent writes", () => {
+  it("finalizes accepted writes but returns rejected writes to the model", async () => {
+    await expect(
+      Promise.resolve(
+        acceptedWriteToolUseBehavior({} as never, [
+          {
+            type: "function_output",
+            output: { accepted: true, message: "written" },
+          } as never,
+        ]),
+      ),
+    ).resolves.toEqual({
+      isFinalOutput: true,
+      isInterrupted: undefined,
+      finalOutput: JSON.stringify({ accepted: true, message: "written" }),
+    });
+
+    await expect(
+      Promise.resolve(
+        acceptedWriteToolUseBehavior({} as never, [
+          {
+            type: "function_output",
+            output: { accepted: false, message: "wrong path" },
+          } as never,
+        ]),
+      ),
+    ).resolves.toEqual({
+      isFinalOutput: false,
+      isInterrupted: undefined,
+    });
+  });
+
+  it("requires the exact artifact path and retains required tool use for retries", async () => {
+    const runtime = new CourseModelRuntime({
+      envFile: "/unused/model.env",
+      baseUrl: "https://provider.example/v1",
+      apiKey: "secret-for-test",
+      model: "qwen3.8-max",
+    });
+    const directory = await temporaryDirectory();
+    const artifactPath = join(directory, "artifact.ts");
+    const stopped = new Error("stop before model request");
+    const run = vi.spyOn(runtime.runner, "run").mockRejectedValue(stopped);
+    const baseInput = {
+      scenario: "api" as const,
+      publicBrief: "Register a user.",
+      executionContract: "Export a handler.",
+      artifactPath,
+    };
+
+    try {
+      await expect(generateDirectImplementation(runtime, baseInput)).rejects.toBe(
+        stopped,
+      );
+      await expect(generateTrainTests(runtime, baseInput)).rejects.toBe(stopped);
+      await expect(
+        repairTrainTests(runtime, {
+          ...baseInput,
+          currentTests: "test('registration', () => {});",
+          referenceStatus: "RED",
+          referenceFeedback: "Expected 201, received password-related 400.",
+        }),
+      ).rejects.toBe(stopped);
+
+      expect(run).toHaveBeenCalledTimes(3);
+      for (const [agent, , options] of run.mock.calls) {
+        expect(agent.modelSettings.toolChoice).toBe("required");
+        expect(agent.resetToolChoice).toBe(false);
+        expect(agent.toolUseBehavior).toBe(acceptedWriteToolUseBehavior);
+        expect(options).toMatchObject({ maxTurns: 6 });
+
+        const writeFile = agent.tools[0];
+        expect(writeFile?.type).toBe("function");
+        if (writeFile?.type !== "function") throw new Error("missing write_file");
+        expect(writeFile.parameters).toMatchObject({
+          properties: { path: { const: artifactPath } },
+        });
+      }
+    } finally {
+      await runtime.close();
+    }
   });
 });
 
@@ -243,12 +551,19 @@ describe("test authoring instructions", () => {
 
     expect(api).toContain("3 to 20 characters");
     expect(api).toContain("10 to 64 characters");
+    expect(api).toContain("Password01");
+    expect(api).toContain("Abcdefghi1");
+    expect(api).toContain("Password1 and Abcdefgh1 are only 9 characters");
+    expect(api).toContain("'A1' + 'x'.repeat(62)");
+    expect(api).toContain("expected to return 201");
+    expect(api).toContain("shared password and password-confirmation fixture");
     expect(api).toContain("Do not use Date.now(), Math.random(), UUIDs");
     expect(api).toContain(
       "include the received response body as a safe assertion message",
     );
     expect(gui).toContain("375-pixel viewport");
     expect(gui).toContain("error summary");
+    expect(gui).toContain("documented Playwright Test matchers");
   });
 
   it("prints only the caller-supplied safe prompt preview", () => {

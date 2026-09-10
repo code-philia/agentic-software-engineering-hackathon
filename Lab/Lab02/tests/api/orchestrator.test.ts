@@ -110,6 +110,81 @@ describe("run logger", () => {
 });
 
 describe("course scenario orchestrator", () => {
+  it("accepts a half-green executable GUI reference suite and quarantines its failures", async () => {
+    const outputRoot = await localTemporaryDirectory();
+    const presenter = new RecordingPresenter();
+    const reference: TrainTestResult = {
+      status: "RED",
+      summary: "4/8 train tests passed.",
+      output: "four semantic mismatches",
+      total: 8,
+      passed: 4,
+      failed: 4,
+      failures: [
+        { name: "fragile visual probe", message: "wrong DOM assumption" },
+        { name: "duplicate probe", message: "reused fixture" },
+      ],
+    };
+    const green: TrainTestResult = {
+      status: "GREEN",
+      summary: "4/4 trusted train tests passed.",
+      output: "ok",
+      total: 4,
+      passed: 4,
+      failed: 0,
+      failures: [],
+    };
+    const repairTests = vi.fn(async () => {
+      throw new Error("A 50%-passing executable GUI suite is accepted.");
+    });
+    const runTrainTests = vi.fn(async () => green);
+    const source = "<!doctype html><html><body><h1>Register</h1></body></html>\n";
+
+    const result = await runCourseScenario({
+      scenario: "gui",
+      publicBrief: "Register a user.",
+      implementationContract: "Write one HTML file.",
+      testContract: "Write executable Playwright tests.",
+      modelName: "fake-model",
+      envFile: ".fake.env",
+      presenter,
+      runsRoot: join(outputRoot, "runs"),
+      workspaceRoot: join(outputRoot, "workspace"),
+      services: {
+        generateDirect: vi.fn(async (input) => {
+          await writeFile(input.artifactPath, source, "utf8");
+          return generation(source);
+        }),
+        generateTests: vi.fn(async (input) => {
+          const tests = 'import { test } from "@playwright/test";\n';
+          await writeFile(input.artifactPath, tests, "utf8");
+          return generation(tests);
+        }),
+        repairTests,
+        runReferenceTrainTests: vi.fn(async () => reference),
+        runTrainTests,
+        repairImplementation: vi.fn(async () => {
+          throw new Error("The trusted subset is already Green.");
+        }),
+        validate: vi.fn(async () => validation(50)),
+      },
+    });
+
+    expect(result).toMatchObject({
+      outcome: "GREEN",
+      testRepairs: 0,
+      quarantinedTrainTests: ["fragile visual probe", "duplicate probe"],
+    });
+    expect(repairTests).not.toHaveBeenCalled();
+    expect(runTrainTests).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.any(String),
+      expect.any(Object),
+      expect.any(AbortSignal),
+      ["fragile visual probe", "duplicate probe"],
+    );
+  });
+
   it("uses the full rewrite budget for infrastructure and semantic reference failures", async () => {
     const outputRoot = await localTemporaryDirectory();
     const presenter = new RecordingPresenter();
@@ -241,6 +316,7 @@ describe("course scenario orchestrator", () => {
         return trainRuns === 1 ? red : green;
       }),
       repairImplementation: vi.fn(async (input): Promise<RepairResult> => {
+        expect(input.maxRepairs).toBe(3);
         directCopyObserved = (
           await readFile(input.implementationPath, "utf8")
         ).includes("status: 201");

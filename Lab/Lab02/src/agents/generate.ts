@@ -1,4 +1,4 @@
-import { Agent, tool } from "@openai/agents";
+import { Agent, tool, type ToolToFinalOutputFunction } from "@openai/agents";
 import { z } from "zod";
 
 import type { ArtifactKind } from "../generation/artifact.js";
@@ -35,12 +35,42 @@ function createWriteFileTool(workspace: AgentFileWorkspace, description: string)
     name: "write_file",
     description: `${description} The only authorized path is ${workspace.allowedPath}.`,
     parameters: z.object({
-      path: z.string().min(1),
+      path: z.literal(workspace.allowedPath),
       content: z.string().min(1),
     }),
     execute: ({ path, content }) => workspace.writeFile(path, content),
   });
 }
+
+export const acceptedWriteToolUseBehavior: ToolToFinalOutputFunction = (
+  _context,
+  toolResults,
+) => {
+  let acceptedOutput: unknown;
+  for (const result of toolResults) {
+    if (
+      result.type === "function_output" &&
+      typeof result.output === "object" &&
+      result.output !== null &&
+      "accepted" in result.output &&
+      result.output.accepted === true
+    ) {
+      acceptedOutput = result.output;
+      break;
+    }
+  }
+  if (acceptedOutput === undefined) {
+    return { isFinalOutput: false, isInterrupted: undefined };
+  }
+  return {
+    isFinalOutput: true,
+    isInterrupted: undefined,
+    finalOutput:
+      typeof acceptedOutput === "string"
+        ? acceptedOutput
+        : JSON.stringify(acceptedOutput),
+  };
+};
 
 async function runGeneration(
   runtime: CourseModelRuntime,
@@ -77,14 +107,21 @@ async function runGeneration(
   const agent = new Agent({
     name: role === "implementation" ? "Implementation File Agent" : "Test File Agent",
     model: runtime.config.model,
-    modelSettings: runtime.modelSettings,
+    modelSettings: {
+      ...runtime.modelSettingsFor(
+        role === "implementation" ? "direct" : "test-generation",
+      ),
+      toolChoice: "required",
+    },
     instructions,
     tools: [writeFile],
+    toolUseBehavior: acceptedWriteToolUseBehavior,
+    resetToolChoice: false,
   });
   const result = await runtime.runner.run(
     agent,
     promptInput,
-    { maxTurns: 4, ...(input.signal === undefined ? {} : { signal: input.signal }) },
+    { maxTurns: 6, ...(input.signal === undefined ? {} : { signal: input.signal }) },
   );
   const content = await workspace.readWrittenFile();
 
@@ -135,6 +172,11 @@ export async function repairTrainTests(
       ? [
           "If the runner exceeded its overall time limit, reducing and consolidating the suite is part of the required repair. Replace one-test-per-example structures with a small number of focused scenario tests and remove redundant waits and assertions while preserving supported behavior coverage.",
           "Do not preserve a large suite merely by changing assertion timeouts. The repaired suite must finish comfortably within the fixed runner budget using one worker.",
+          "When the same locator timeout causes several tests to fail, fix that shared locator first instead of rewriting unrelated assertions. In particular, use getByRole('checkbox', { name: /terms/i }) for terms rather than an anchored label matcher, and use a submit-specific locator for the primary action.",
+          "For presentation failures, distinguish foreground color from backgroundColor. The orange requirement applies to the submit action's background; do not expect its readable foreground text to be orange.",
+          "In field-policy tables, repeated success rows can pollute later rows through legitimate duplicate detection. Clear browser storage before each independent boundary row, or make both identifiers unique for every success. Keep persistence assertions in their separate scenarios.",
+          "The username normalization rule trims whitespace but preserves spelling and case. Assert the trimmed submitted value itself; do not compare storage with a differently-cased seed variable.",
+          "A label associated with an input may be a sibling through label[for], not an ancestor. For label-position failures, use the input element's labels collection and compare bounding rectangles; do not use an ancestor-label XPath.",
         ]
       : []),
     "When many expected-success cases receive the same rejection status, inspect shared fixtures, generators, request helpers, and default payloads before changing individual assertions.",
@@ -153,14 +195,19 @@ export async function repairTrainTests(
   const agent = new Agent({
     name: "Test File Repair Agent",
     model: runtime.config.model,
-    modelSettings: runtime.modelSettings,
+    modelSettings: {
+      ...runtime.modelSettingsFor("test-repair"),
+      toolChoice: "required",
+    },
     instructions,
     tools: [writeFile],
+    toolUseBehavior: acceptedWriteToolUseBehavior,
+    resetToolChoice: false,
   });
   const result = await runtime.runner.run(
     agent,
     promptInput,
-    { maxTurns: 4, ...(input.signal === undefined ? {} : { signal: input.signal }) },
+    { maxTurns: 6, ...(input.signal === undefined ? {} : { signal: input.signal }) },
   );
   const content = await workspace.readWrittenFile();
 

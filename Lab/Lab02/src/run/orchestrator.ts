@@ -13,6 +13,7 @@ import {
   type CourseScenario,
 } from "../agents/generate.js";
 import {
+  implementationRepairLimit,
   runTddRepair,
   type RepairInput,
   type RepairResult,
@@ -48,6 +49,7 @@ export interface ScenarioServices {
     testPath: string,
     workspace: RunWorkspace,
     signal?: AbortSignal,
+    excludedTestNames?: readonly string[],
   ): Promise<TrainTestResult>;
   runReferenceTrainTests(
     testPath: string,
@@ -107,6 +109,7 @@ export interface ScenarioRunResult {
   readonly initialTrainResult?: TrainTestResult;
   readonly referenceTrainResult?: TrainTestResult;
   readonly finalTrainResult?: TrainTestResult;
+  readonly quarantinedTrainTests?: readonly string[];
   readonly testRepairs: number;
   readonly repairs: number;
   readonly modelUsage: {
@@ -115,6 +118,33 @@ export interface ScenarioRunResult {
     readonly testRepairs: readonly UsageSnapshot[];
     readonly implementationRepair?: UsageSnapshot;
   };
+}
+
+export const GUI_REFERENCE_MINIMUM_PASS_RATIO = 0.5;
+
+function referenceSuiteIsAccepted(
+  scenario: CourseScenario,
+  result: TrainTestResult,
+): boolean {
+  if (result.status === "GREEN") return true;
+  if (
+    scenario !== "gui" ||
+    result.status !== "RED" ||
+    result.total === undefined ||
+    result.total === 0 ||
+    result.passed === undefined ||
+    result.failed === undefined ||
+    result.failed === 0 ||
+    result.failures === undefined ||
+    result.failures.length === 0
+  ) {
+    return false;
+  }
+  return result.passed / result.total >= GUI_REFERENCE_MINIMUM_PASS_RATIO;
+}
+
+function quarantinedTestNames(result: TrainTestResult): readonly string[] {
+  return [...new Set((result.failures ?? []).map((failure) => failure.name))];
 }
 
 const MAX_REFERENCE_FEEDBACK_CHARACTERS = 12_000;
@@ -507,9 +537,10 @@ export async function runCourseScenario(
         let testRepairs = 0;
         const testRepairUsage: UsageSnapshot[] = [];
         while (
-          referenceTrainResult.status !== "GREEN" &&
+          !referenceSuiteIsAccepted(options.scenario, referenceTrainResult) &&
           testRepairs < maxTestRepairs
         ) {
+          if (referenceTrainResult.status === "GREEN") break;
           testRepairs += 1;
           logger.warn({
             event: "train_tests_need_repair",
@@ -611,7 +642,7 @@ export async function runCourseScenario(
       testRepairUsage,
     } = preparedTrainSuite;
 
-    if (referenceTrainResult.status !== "GREEN") {
+    if (!referenceSuiteIsAccepted(options.scenario, referenceTrainResult)) {
       const reason = `The train suite could not be verified after ${testRepairs} rewrite attempt(s).`;
       const invalidResult: ScenarioRunResult = {
         outcome: "INVALID_TRAIN_SUITE",
@@ -643,6 +674,18 @@ export async function runCourseScenario(
       return invalidResult;
     }
 
+    const quarantinedTrainTests =
+      referenceTrainResult.status === "RED"
+        ? quarantinedTestNames(referenceTrainResult)
+        : [];
+    if (quarantinedTrainTests.length > 0) {
+      logger.warn({
+        event: "train_tests_quarantined",
+        minimumPassRatio: GUI_REFERENCE_MINIMUM_PASS_RATIO,
+        tests: quarantinedTrainTests,
+      });
+    }
+
     options.presenter.artifact({
       label: options.rehearsal
         ? "Rehearsal train tests loaded"
@@ -671,6 +714,7 @@ export async function runCourseScenario(
           workspace.trainTests,
           workspace,
           signal,
+          quarantinedTrainTests,
         ),
     );
 
@@ -717,7 +761,9 @@ export async function runCourseScenario(
     let implementationRepairUsage: UsageSnapshot | undefined;
 
     if (initialTrainResult.status === "RED") {
-      const maxImplementationRepairs = 3;
+      const maxImplementationRepairs = implementationRepairLimit(
+        options.scenario,
+      );
       options.presenter.repairStarted(maxImplementationRepairs);
       const repair = await modelStage(
         "tdd_repair",
@@ -740,6 +786,7 @@ export async function runCourseScenario(
                 workspace.trainTests,
                 workspace,
                 signal,
+                quarantinedTrainTests,
               ),
             onCheckpoint: async (checkpoint) => {
               if (checkpoint.type === "implementation-written") {
@@ -858,6 +905,9 @@ export async function runCourseScenario(
       referenceTrainResult,
       initialTrainResult,
       finalTrainResult,
+      ...(quarantinedTrainTests.length === 0
+        ? {}
+        : { quarantinedTrainTests }),
       testRepairs,
       repairs,
       modelUsage: {

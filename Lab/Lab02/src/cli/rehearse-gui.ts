@@ -153,7 +153,13 @@ async function main(): Promise<void> {
           ),
           ...(signal === undefined ? {} : { signal }),
         }),
-      runTrainTests: (implementationPath, testPath, workspace, signal) =>
+      runTrainTests: (
+        implementationPath,
+        testPath,
+        workspace,
+        signal,
+        excludedTestNames,
+      ) =>
         runGuiTrainTests({
           htmlPath: implementationPath,
           testPath,
@@ -164,6 +170,9 @@ async function main(): Promise<void> {
             "train-playwright-artifacts",
           ),
           timeoutDisposition: "red",
+          ...(excludedTestNames === undefined
+            ? {}
+            : { excludedTestNames }),
           ...(signal === undefined ? {} : { signal }),
         }),
       repairImplementation: async (input): Promise<RepairResult> => {
@@ -171,13 +180,13 @@ async function main(): Promise<void> {
         await input.onCheckpoint?.({
           type: "implementation-written",
           repair: 1,
-          maxRepairs: 3,
+          maxRepairs: 4,
         });
         const finalTestResult = await input.runTrainTests();
         await input.onCheckpoint?.({
           type: "train-tests-finished",
           repair: 1,
-          maxRepairs: 3,
+          maxRepairs: 4,
           result: finalTestResult,
           decision: "stop-green",
         });

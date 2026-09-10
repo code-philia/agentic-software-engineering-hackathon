@@ -8,12 +8,13 @@ export interface GuiServerOptions {
   readonly port?: number;
 }
 
-const HOST = "127.0.0.1";
+const BIND_HOST = "127.0.0.1";
+const PUBLIC_HOST = "localhost";
 
 export async function startGuiServer(options: GuiServerOptions): Promise<RunningServer> {
   const html = await readFile(options.htmlPath);
   const server = createServer((request, response) => {
-    const pathname = new URL(request.url ?? "/", `http://${HOST}`).pathname;
+    const pathname = new URL(request.url ?? "/", `http://${PUBLIC_HOST}`).pathname;
 
     if (request.method !== "GET" || (pathname !== "/" && pathname !== "/index.html")) {
       response.writeHead(404, { "content-type": "text/plain; charset=utf-8" });
@@ -30,7 +31,7 @@ export async function startGuiServer(options: GuiServerOptions): Promise<Running
 
   await new Promise<void>((resolve, reject) => {
     server.once("error", reject);
-    server.listen(options.port ?? 0, HOST, () => {
+    server.listen(options.port ?? 0, BIND_HOST, () => {
       server.off("error", reject);
       resolve();
     });
@@ -43,7 +44,7 @@ export async function startGuiServer(options: GuiServerOptions): Promise<Running
   }
 
   return {
-    url: `http://${HOST}:${address.port}`,
+    url: `http://${PUBLIC_HOST}:${address.port}`,
     close: () =>
       new Promise<void>((resolve, reject) => {
         server.close((error) => (error ? reject(error) : resolve()));

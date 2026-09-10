@@ -153,7 +153,7 @@ For each scenario:
 10. If the suite is still not Green against the reference after the test-rewrite budget is exhausted, stop the run as `INVALID_TRAIN_SUITE`.
 11. Once the suite is Green against the reference, freeze it and run it against the TDD working copy to establish Red or Green.
 12. If Red, give only the frozen train tests and their runner feedback to the implementation model.
-13. Repeat implementation repair until all train tests are Green or three implementation-repair attempts have been used.
+13. Repeat implementation repair until all train tests are Green or the scenario budget is exhausted: three implementation-repair attempts for API and four for GUI.
 14. Run hidden validation once against the final TDD artifact.
 15. Display the Direct and TDD validation results side by side.
 
@@ -346,7 +346,7 @@ The external orchestrator owns the teaching pace even when an agent owns the rep
 - Direct implementation generation and train-test generation use a narrow `write_file` function tool restricted to the one authorized artifact.
 - TDD repair uses the narrow local function tools `write_file` and `run_train_tests`; `write_file` is restricted to the TDD implementation artifact.
 - The repair agent receives the frozen train tests and current failure feedback, decides what to change, writes only the TDD working artifact, runs the train suite, observes the result, and continues until Green or the existing repair limit.
-- Each accepted `write_file` call during implementation repair consumes one of the three implementation-repair attempts. `run_train_tests` calls do not consume that budget.
+- Each accepted `write_file` call during implementation repair consumes one scenario-budget attempt: three are available for API and four for GUI. `run_train_tests` calls do not consume that budget.
 - After the repair agent finishes, the orchestrator runs the train suite once if the latest implementation write has not yet been tested.
 - Do not give the repair agent general shell access, unrestricted filesystem access, or validation access.
 - Reliable function calling is an eligibility requirement for a classroom model. Test this explicitly during provider/model evaluation.

@@ -6,7 +6,7 @@ import {
   type RetryPolicyContext,
   type Usage,
 } from "@openai/agents";
-import OpenAI from "openai";
+import OpenAI, { APIConnectionTimeoutError } from "openai";
 
 import type { ModelConfig, SupportedModel } from "../config/model-config.js";
 
@@ -34,7 +34,8 @@ export interface InferencePolicy {
 
 export interface ExecutionPolicy {
   readonly id: "classroom-execution-v1";
-  readonly modelCallTimeoutMs: number;
+  readonly modelCallTimeoutMs: Readonly<Record<ModelCallStage, number>>;
+  readonly maxOutputTokens: Readonly<Record<ModelCallStage, number>>;
   readonly maxTransientRetries: number;
   readonly retryBackoff: {
     readonly initialDelayMs: number;
@@ -42,6 +43,13 @@ export interface ExecutionPolicy {
   };
   readonly scenarioDeadlineMs: { readonly api: number; readonly gui: number };
 }
+
+export type ModelCallStage =
+  | "doctor"
+  | "direct"
+  | "test-generation"
+  | "test-repair"
+  | "implementation-repair";
 
 export interface RuntimeRetryEvent {
   readonly attempt: number;
@@ -54,10 +62,23 @@ export interface RuntimeRetryEvent {
 
 export const executionPolicy: ExecutionPolicy = {
   id: "classroom-execution-v1",
-  modelCallTimeoutMs: 120_000,
+  modelCallTimeoutMs: {
+    doctor: 180_000,
+    direct: 300_000,
+    "test-generation": 900_000,
+    "test-repair": 900_000,
+    "implementation-repair": 900_000,
+  },
+  maxOutputTokens: {
+    doctor: 2_048,
+    direct: 12_000,
+    "test-generation": 8_192,
+    "test-repair": 8_192,
+    "implementation-repair": 8_192,
+  },
   maxTransientRetries: 1,
   retryBackoff: { initialDelayMs: 1_000, maxDelayMs: 5_000 },
-  scenarioDeadlineMs: { api: 600_000, gui: 900_000 },
+  scenarioDeadlineMs: { api: 2_700_000, gui: 1_800_000 },
 };
 
 const qwenNonThinkingPolicy = {
@@ -72,11 +93,17 @@ const standardNonThinkingPolicy = {
   providerData: { thinking: { type: "disabled" } },
 } as const;
 
+const genericNonThinkingPolicy = {
+  mode: "non-thinking",
+  temperature: 0,
+  providerData: {},
+} as const;
+
 const modelInferencePolicies: Readonly<
-  Record<
+  Partial<Record<
     SupportedModel,
     Omit<InferencePolicy, "id" | "model">
-  >
+  >>
 > = {
   "qwen3.8-max": qwenNonThinkingPolicy,
   "qwen3.7-plus": qwenNonThinkingPolicy,
@@ -91,27 +118,55 @@ const modelInferencePolicies: Readonly<
     providerData: {},
   },
   "glm-5.2": standardNonThinkingPolicy,
-  "deepseek-v4-pro-0813": standardNonThinkingPolicy,
-  "deepseek-v4-flash-0731": standardNonThinkingPolicy,
   "deepseek-v4-pro": standardNonThinkingPolicy,
+  "deepseek-v4-pro-0813": standardNonThinkingPolicy,
   "deepseek-v4-flash": standardNonThinkingPolicy,
+  "deepseek-v4-flash-0731": standardNonThinkingPolicy,
 };
+
+function inferredInferencePolicy(
+  model: string,
+): Omit<InferencePolicy, "id" | "model"> {
+  const normalized = model.toLowerCase();
+  if (normalized.startsWith("qwen")) return qwenNonThinkingPolicy;
+  if (normalized.startsWith("glm-5.3")) {
+    return {
+      mode: "lowest-supported-thinking",
+      temperature: 0,
+      reasoningEffort: "low",
+      providerData: {},
+    };
+  }
+  if (
+    normalized.startsWith("deepseek-") ||
+    normalized.startsWith("kimi-") ||
+    normalized.startsWith("minimax-") ||
+    normalized.startsWith("glm-")
+  ) {
+    return standardNonThinkingPolicy;
+  }
+  return genericNonThinkingPolicy;
+}
 
 export function resolveInferencePolicy(config: ModelConfig): InferencePolicy {
   return {
     id: "closest-non-thinking-v1",
     model: config.model,
-    ...modelInferencePolicies[config.model],
+    ...(modelInferencePolicies[config.model] ??
+      inferredInferencePolicy(config.model)),
   };
 }
 
 function createModelSettings(
   policy: InferencePolicy,
+  timeoutMs: number,
+  maxTokens: number,
   onRetry: (event: RuntimeRetryEvent) => void,
 ): ModelSettings {
-  const retryableStatuses = new Set([408, 429, 500, 502, 503, 504]);
+  const retryableStatuses = new Set([408, 429, 500, 502, 503, 504, 524]);
   return {
-    timeoutMs: executionPolicy.modelCallTimeoutMs,
+    timeoutMs,
+    maxTokens,
     ...(policy.temperature === undefined ? {} : { temperature: policy.temperature }),
     preserveRawUsage: true,
     parallelToolCalls: false,
@@ -128,16 +183,25 @@ function createModelSettings(
         jitter: true,
       },
       policy: (context: RetryPolicyContext) => {
-        const timedOut = context.error instanceof ModelTimeoutError;
+        const timedOut =
+          context.error instanceof ModelTimeoutError ||
+          context.error instanceof APIConnectionTimeoutError;
         const providerVetoed = context.providerAdvice?.suggested === false;
-        const retry = !providerVetoed && (
-          timedOut ||
-          context.normalized.isNetworkError ||
-          (context.normalized.statusCode !== undefined &&
-            retryableStatuses.has(context.normalized.statusCode))
-        );
+        const transientProxyTruncation =
+          context.normalized.statusCode === 400 &&
+          context.normalized.errorCode === "proxy_error" &&
+          isConnectionTruncationError(context.error);
+        const retry =
+          transientProxyTruncation ||
+          (!providerVetoed &&
+            (timedOut ||
+              context.normalized.isNetworkError ||
+              (context.normalized.statusCode !== undefined &&
+                retryableStatuses.has(context.normalized.statusCode))));
         const reason = timedOut
           ? "model request timeout"
+          : transientProxyTruncation
+            ? "transient provider proxy truncation"
           : context.normalized.statusCode === 429
             ? "rate limit"
             : context.normalized.statusCode !== undefined
@@ -172,6 +236,37 @@ function createModelSettings(
   };
 }
 
+function isConnectionTruncationError(error: unknown): boolean {
+  const messages: string[] = [];
+  const visited = new Set<unknown>();
+  let current: unknown = error;
+
+  while (current !== undefined && current !== null && !visited.has(current)) {
+    visited.add(current);
+    if (current instanceof Error) messages.push(current.message);
+    else if (typeof current === "object" && "message" in current) {
+      const message = current.message;
+      if (typeof message === "string") messages.push(message);
+    }
+    current =
+      typeof current === "object" && "cause" in current
+        ? current.cause
+        : undefined;
+  }
+
+  return messages.some((message) => {
+    const normalized = message.toLowerCase();
+    return (
+      /\bunexpected\s+(?:eof|end of (?:file|input|stream))\b/.test(normalized) ||
+      /\bpremature\s+(?:eof|end|close|closure)\b/.test(normalized) ||
+      /\b(?:connection|response|socket|stream)\s+(?:was\s+)?(?:closed|cut off|terminated|truncated)\b/.test(
+        normalized,
+      ) ||
+      /\btruncated\s+(?:connection|response|body|stream)\b/.test(normalized)
+    );
+  });
+}
+
 export class CourseModelRuntime {
   readonly config: ModelConfig;
   readonly runner: Runner;
@@ -184,14 +279,15 @@ export class CourseModelRuntime {
   constructor(config: ModelConfig) {
     this.config = config;
     this.inferencePolicy = resolveInferencePolicy(config);
-    this.modelSettings = createModelSettings(this.inferencePolicy, (event) => {
-      this.#retryListener?.(event);
-    });
+    this.modelSettings = this.modelSettingsFor("doctor");
 
     const client = new OpenAI({
       apiKey: config.apiKey,
       baseURL: config.baseUrl,
       maxRetries: 0,
+      ...(config.provider === undefined
+        ? {}
+        : { defaultHeaders: { "x-onr-provider": config.provider } }),
     });
     this.#provider = new OpenAIProvider({
       openAIClient: client,
@@ -204,6 +300,15 @@ export class CourseModelRuntime {
       tracingDisabled: true,
       traceIncludeSensitiveData: false,
     });
+  }
+
+  modelSettingsFor(stage: ModelCallStage): ModelSettings {
+    return createModelSettings(
+      this.inferencePolicy,
+      executionPolicy.modelCallTimeoutMs[stage],
+      executionPolicy.maxOutputTokens[stage],
+      (event) => this.#retryListener?.(event),
+    );
   }
 
   setRetryListener(listener: ((event: RuntimeRetryEvent) => void) | undefined): void {

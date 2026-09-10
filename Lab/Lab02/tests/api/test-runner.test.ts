@@ -235,6 +235,43 @@ describe("generated GUI train-test runner", () => {
     });
   });
 
+  it("excludes quarantined GUI tests by their reported names", async () => {
+    const outputRoot = await localTemporaryDirectory();
+    const workspace = await createRunWorkspace("gui", {
+      runsRoot: join(outputRoot, "runs"),
+      workspaceRoot: join(outputRoot, "workspace"),
+    });
+    await writeFile(
+      workspace.tddImplementation,
+      "<!doctype html><html><body><h1>Registration</h1></body></html>\n",
+      "utf8",
+    );
+    await writeFile(
+      workspace.trainTests,
+      `import { expect, test } from "@playwright/test";
+      test("trusted heading", async ({ page }) => {
+        await page.goto(process.env.COURSE_GUI_BASE_URL!);
+        await expect(page.getByRole("heading", { name: "Registration" })).toBeVisible();
+      });
+      test("fragile [visual] probe", async ({ page }) => {
+        await page.goto(process.env.COURSE_GUI_BASE_URL!);
+        await expect(page.getByText("missing")).toBeVisible();
+      });\n`,
+      "utf8",
+    );
+
+    await expect(
+      runGuiTrainTests({
+        htmlPath: workspace.tddImplementation,
+        testPath: workspace.trainTests,
+        reportPath: join(workspace.testOutputDirectory, "quarantined.json"),
+        rawOutputPath: join(workspace.testOutputDirectory, "quarantined.txt"),
+        browserOutputPath: join(workspace.testOutputDirectory, "quarantined-output"),
+        excludedTestNames: ["fragile [visual] probe"],
+      }),
+    ).resolves.toMatchObject({ status: "GREEN", total: 1, passed: 1 });
+  });
+
   it("treats only a frozen-suite overall timeout as RED", async () => {
     const outputRoot = await localTemporaryDirectory();
     const workspace = await createRunWorkspace("gui", {
