@@ -9,6 +9,19 @@ export interface RegistrationValues {
   readonly terms?: boolean;
 }
 
+let registrationSequence = 0;
+
+export function uniqueRegistration(): {
+  readonly username: string;
+  readonly email: string;
+} {
+  registrationSequence += 1;
+  return {
+    username: `User_${registrationSequence}`,
+    email: `user${registrationSequence}@example.com`,
+  };
+}
+
 function pageUrl(): string {
   const value = process.env.COURSE_GUI_BASE_URL;
   if (!value) throw new Error("COURSE_GUI_BASE_URL is required.");

@@ -49,7 +49,9 @@ describe("GUI prompt and repair tuning", () => {
     expect(instructions).not.toContain("exactly 8 top-level Playwright tests");
     expect(instructions).not.toContain("required eight executable scenarios");
     expect(instructions).toContain("Use the supplied resetRegistration helper");
-    expect(instructions).toContain("Use the supplied controls, fillRegistration");
+    expect(instructions).toContain("Use the supplied controls, uniqueRegistration");
+    expect(instructions).toContain("do not call resetRegistration or localStorage.clear");
+    expect(instructions).toContain("row labels");
     expect(instructions).toContain("expectFirstInvalid, expectRejection");
     expect(instructions).toContain("create.*account");
     expect(instructions).toContain("set confirmation to that same value");

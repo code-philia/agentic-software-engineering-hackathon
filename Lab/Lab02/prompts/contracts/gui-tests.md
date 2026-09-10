@@ -2,13 +2,15 @@
 
 Produce the complete contents of one executable Playwright file named `register.spec.ts`.
 
-The runner provides the page URL in `process.env.COURSE_GUI_BASE_URL`. Import `test` and `expect` from `@playwright/test`. Also import the teacher-owned browser helpers you need from `./course-gui-test-support.js`: `controls`, `openRegistration`, `resetRegistration`, `fillRegistration`, `submitRegistration`, `successFeedback`, `errorSummary`, `expectFieldError`, `expectFirstInvalid`, `expectRejection`, and `storageCorpus`. Use these helpers instead of redefining navigation, storage reset, shared field locators, complete valid form filling, submission, field-error assertions, focus assertions, rejection assertions, or feedback locators. Treat the supplied browser page as the only application seam. The standard UI and reference implementation are unavailable to the model.
+The runner provides the page URL in `process.env.COURSE_GUI_BASE_URL`. Import `test` and `expect` from `@playwright/test`. Also import the teacher-owned browser helpers you need from `./course-gui-test-support.js`: `controls`, `openRegistration`, `resetRegistration`, `uniqueRegistration`, `fillRegistration`, `submitRegistration`, `successFeedback`, `errorSummary`, `expectFieldError`, `expectFirstInvalid`, `expectRejection`, and `storageCorpus`. Use these helpers instead of redefining navigation, storage reset, unique valid identity generation, shared field locators, complete valid form filling, submission, field-error assertions, focus assertions, rejection assertions, or feedback locators. Treat the supplied browser page as the only application seam. The standard UI and reference implementation are unavailable to the model.
 
 `controls(page)` returns these Locator properties: `heading`, `form`, `username`, `email`, `dateOfBirth` (with `dob` as an alias), `password`, `confirmPassword`, `terms`, `submit`, and `passwordToggle`. Do not assume any other property exists.
 
 `fillRegistration(page, overrides)` sets every form control. Its defaults form a valid registration and accept the terms. A password override automatically becomes the confirmation unless `confirmPassword` is also supplied. To test missing terms, pass `{ terms: false }`; do not call `fillRegistration(page)` and then expect an unchecked checkbox.
 
 `expectFieldError(page, field, pattern?)` accepts either a field name from `controls(page)` or the Locator itself; the message pattern is optional. `expectFirstInvalid(page, field?)` checks focus and defaults to the username. `expectRejection(page)` checks for visible rejection feedback and no success feedback. `storageCorpus(page)` is asynchronous; use `await storageCorpus(page)` to obtain its `Record<string, string>` of every localStorage key and value.
+
+`uniqueRegistration()` synchronously returns a fresh valid `{ username, email }` pair. Use it whenever a test or table row needs unique valid identity data; never derive constrained identifiers from human-readable test labels.
 
 Use `controls(page).passwordToggle` for the one Show/Hide action that toggles both password inputs. Do not replace it with another role or text locator.
 
