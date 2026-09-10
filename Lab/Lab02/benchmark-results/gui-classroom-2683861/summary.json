@@ -1,0 +1,67 @@
+{
+  "commit": "2683861",
+  "model": "qwen3.8-max",
+  "attempts": 3,
+  "successfulAttempts": 3,
+  "successRate": 1,
+  "averagesOverSuccessfulAttempts": {
+    "modelDurationMs": 120004,
+    "requests": 3,
+    "inputTokens": 19421.33,
+    "outputTokens": 9084,
+    "totalTokens": 28505.33,
+    "directValidationPassed": 8.33,
+    "tddValidationPassed": 30.33,
+    "validationImprovement": 22
+  },
+  "runs": [
+    {
+      "runId": "20260910T190032Z-gui-a84976c8",
+      "outcome": "GREEN",
+      "referenceTrain": "41/41",
+      "initialTrain": "16/41",
+      "finalTrain": "41/41",
+      "testRepairs": 0,
+      "implementationRepairs": 1,
+      "directValidation": "8/36",
+      "tddValidation": "32/36",
+      "modelDurationMs": 120225,
+      "requests": 3,
+      "inputTokens": 19358,
+      "outputTokens": 9150,
+      "totalTokens": 28508
+    },
+    {
+      "runId": "20260910T190041Z-gui-6c63441d",
+      "outcome": "GREEN",
+      "referenceTrain": "39/39",
+      "initialTrain": "11/39",
+      "finalTrain": "39/39",
+      "testRepairs": 0,
+      "implementationRepairs": 1,
+      "directValidation": "8/36",
+      "tddValidation": "25/36",
+      "modelDurationMs": 116415,
+      "requests": 3,
+      "inputTokens": 19580,
+      "outputTokens": 8843,
+      "totalTokens": 28423
+    },
+    {
+      "runId": "20260910T190047Z-gui-82ea46b4",
+      "outcome": "GREEN",
+      "referenceTrain": "40/40",
+      "initialTrain": "14/40",
+      "finalTrain": "40/40",
+      "testRepairs": 0,
+      "implementationRepairs": 1,
+      "directValidation": "9/36",
+      "tddValidation": "34/36",
+      "modelDurationMs": 123371,
+      "requests": 3,
+      "inputTokens": 19326,
+      "outputTokens": 9259,
+      "totalTokens": 28585
+    }
+  ]
+}
