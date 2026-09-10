@@ -78,7 +78,7 @@ describe("GUI prompt and repair tuning", () => {
     expect(instructions).toContain("never store passwords");
   });
 
-  it("ends the repair agent from the real train-test tool output when tests turn green", async () => {
+  it("ends each model call after one implementation write so the harness can run tests", async () => {
     const directory = await mkdtemp(join(tmpdir(), "lab02-repair-green-"));
     temporaryDirectories.push(directory);
     const implementationPath = join(directory, "register.ts");
@@ -100,7 +100,7 @@ describe("GUI prompt and repair tuning", () => {
         output: "passed",
       }),
     });
-    await workspace.writeImplementation(
+    const writeResult = await workspace.writeImplementation(
       implementationPath,
       "export default () => new Response(null, { status: 201 });",
     );
@@ -116,7 +116,15 @@ describe("GUI prompt and repair tuning", () => {
     });
     expect(
       await invoke({}, [
-        { type: "function_output", output: toolOutput },
+        { type: "function_output", output: writeResult },
+      ]),
+    ).toMatchObject({ isFinalOutput: true });
+    expect(
+      await invoke({}, [
+        {
+          type: "function_output",
+          output: { accepted: false, message: "unchanged" },
+        },
       ]),
     ).toMatchObject({ isFinalOutput: true });
   });
@@ -191,7 +199,59 @@ describe("GUI prompt and repair tuning", () => {
       accepted: false,
       message: expect.stringContaining("5/10 train tests passed"),
     });
+    await expect(
+      workspace.writeImplementation(
+        implementationPath,
+        `\`\`\`html\n${current}\n\`\`\``,
+      ),
+    ).resolves.toMatchObject({
+      accepted: false,
+      message: expect.stringContaining("unchanged"),
+    });
+    await expect(
+      workspace.writeImplementation(join(directory, "wrong.html"), "not html"),
+    ).resolves.toMatchObject({
+      accepted: false,
+      message: expect.stringContaining("may only write"),
+    });
     expect(workspace.repairs).toBe(0);
+  });
+
+  it("stores the canonical implementation rather than a model code fence", async () => {
+    const directory = await mkdtemp(join(tmpdir(), "lab02-repair-fence-"));
+    temporaryDirectories.push(directory);
+    const implementationPath = join(directory, "index.html");
+    const workspace = new RepairWorkspace({
+      scenario: "gui",
+      publicBrief: "Register an account.",
+      implementationContract: "Write one index.html file.",
+      implementationPath,
+      currentImplementation: "<html><body>current</body></html>",
+      frozenTrainTests: "",
+      initialTestResult: {
+        status: "RED",
+        summary: "One behavior is missing.",
+        output: "failed",
+      },
+      runTrainTests: async () => ({
+        status: "GREEN",
+        summary: "All train tests passed.",
+        output: "passed",
+      }),
+    });
+
+    await expect(
+      workspace.writeImplementation(
+        implementationPath,
+        "```html\n<html><body>changed</body></html>\n```",
+      ),
+    ).resolves.toMatchObject({ accepted: true });
+    expect(workspace.currentImplementation).toBe(
+      "<html><body>changed</body></html>\n",
+    );
+    await expect(readFile(implementationPath, "utf8")).resolves.toBe(
+      "<html><body>changed</body></html>\n",
+    );
   });
 
   it("allows five GUI implementation writes by default and rejects a sixth", async () => {

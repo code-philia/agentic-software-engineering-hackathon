@@ -5,13 +5,14 @@ import { Writable } from "node:stream";
 
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { APIConnectionTimeoutError } from "openai";
-import { MaxTurnsExceededError } from "@openai/agents";
+import { MaxTurnsExceededError, ModelBehaviorError } from "@openai/agents";
 
 import { AgentFileWorkspace } from "../../src/agents/file-workspace.js";
 import {
   acceptedWriteToolUseBehavior,
   generateDirectImplementation,
   generateTrainTests,
+  GenerationArtifactError,
   generationArtifactErrorFromRunnerError,
   repairTrainTests,
 } from "../../src/agents/generate.js";
@@ -760,6 +761,160 @@ describe("agent file workspace", () => {
       },
       cause: runnerError,
     });
+  });
+
+  it("preserves implementation-repair evidence from a state-bearing runner failure", async () => {
+    const runtime = new CourseModelRuntime({
+      envFile: "/unused/model.env",
+      baseUrl: "https://provider.example/v1",
+      apiKey: "secret-for-test",
+      model: "qwen3.8-max",
+    });
+    const directory = await temporaryDirectory();
+    const runnerError = new ModelBehaviorError("invalid model tool call", {
+      usage: {
+        requests: 1,
+        inputTokens: 80,
+        outputTokens: 20,
+        totalTokens: 100,
+        requestUsage: [],
+      },
+      _modelResponses: [{ id: "repair-failed-response" }],
+    } as never);
+    vi.spyOn(runtime.runner, "run").mockRejectedValue(runnerError);
+
+    try {
+      await expect(
+        runTddRepair(runtime, {
+          scenario: "gui",
+          publicBrief: "Register an account.",
+          implementationContract: "Write one index.html file.",
+          implementationPath: join(directory, "index.html"),
+          currentImplementation: "<html><body>current</body></html>",
+          frozenTrainTests: "test('registration', () => {});",
+          initialTestResult: {
+            status: "RED",
+            summary: "One assertion failed.",
+            output: "failed",
+          },
+          runTrainTests: async () => ({
+            status: "RED",
+            summary: "One assertion failed.",
+            output: "failed",
+          }),
+        }),
+      ).rejects.toMatchObject<Partial<GenerationArtifactError>>({
+        name: "GenerationArtifactError",
+        usage: {
+          requests: 1,
+          inputTokens: 80,
+          outputTokens: 20,
+          totalTokens: 100,
+          requestUsage: [],
+        },
+        rawResponses: [{ id: "repair-failed-response" }],
+        prompt: {
+          instructions: expect.stringContaining("Repair the implementation"),
+          input: expect.stringContaining("Current train-test result"),
+        },
+        cause: runnerError,
+      });
+    } finally {
+      await runtime.close();
+    }
+  });
+
+  it("combines earlier repair evidence when a later model round fails", async () => {
+    const runtime = new CourseModelRuntime({
+      envFile: "/unused/model.env",
+      baseUrl: "https://provider.example/v1",
+      apiKey: "secret-for-test",
+      model: "qwen3.8-max",
+    });
+    const directory = await temporaryDirectory();
+    const implementationPath = join(directory, "index.html");
+    const laterError = new ModelBehaviorError("second repair failed", {
+      usage: {
+        requests: 1,
+        inputTokens: 200,
+        outputTokens: 30,
+        totalTokens: 230,
+        requestUsage: [],
+      },
+      _modelResponses: [{ id: "second-response" }],
+    } as never);
+    vi.spyOn(runtime.runner, "run")
+      .mockImplementationOnce(async (agent) => {
+        const writeTool = agent.tools[0];
+        if (writeTool?.type !== "function") {
+          throw new Error("expected the implementation write tool");
+        }
+        await writeTool.invoke(
+          {} as never,
+          JSON.stringify({
+            path: implementationPath,
+            content: "<html><body>first repair</body></html>",
+          }),
+        );
+        return {
+          state: {
+            usage: {
+              requests: 1,
+              inputTokens: 100,
+              outputTokens: 20,
+              totalTokens: 120,
+              requestUsage: [],
+            },
+          },
+          rawResponses: [{ id: "first-response" }],
+          finalOutput: "written",
+        } as never;
+      })
+      .mockRejectedValueOnce(laterError);
+
+    try {
+      await expect(
+        runTddRepair(runtime, {
+          scenario: "gui",
+          publicBrief: "Register an account.",
+          implementationContract: "Write one index.html file.",
+          implementationPath,
+          currentImplementation: "<html><body>current</body></html>",
+          frozenTrainTests: "test('registration', () => {});",
+          initialTestResult: {
+            status: "RED",
+            summary: "Two assertions failed.",
+            output: "failed twice",
+          },
+          runTrainTests: async () => ({
+            status: "RED",
+            summary: "One assertion failed.",
+            output: "failed once",
+          }),
+          maxRepairs: 2,
+        }),
+      ).rejects.toMatchObject<Partial<GenerationArtifactError>>({
+        name: "GenerationArtifactError",
+        usage: {
+          requests: 2,
+          inputTokens: 300,
+          outputTokens: 50,
+          totalTokens: 350,
+          requestUsage: [],
+        },
+        rawResponses: [
+          { id: "first-response" },
+          { id: "second-response" },
+        ],
+        prompt: {
+          instructions: expect.stringContaining("Repair the implementation"),
+          input: expect.stringContaining("NEXT REPAIR MODEL CALL"),
+        },
+        cause: laterError,
+      });
+    } finally {
+      await runtime.close();
+    }
   });
 
   it("rejects an unchanged repair without consuming its write", async () => {
