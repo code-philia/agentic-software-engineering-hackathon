@@ -69,22 +69,87 @@ describe("GUI prompt and repair tuning", () => {
     expect(instructions).toContain("/^password(?!.*confirm)/i");
   });
 
-  it("keeps the repair agent running until tests are green or the limit is reached", async () => {
+  it("ends the repair agent from the real train-test tool output when tests turn green", async () => {
+    const directory = await mkdtemp(join(tmpdir(), "lab02-repair-green-"));
+    temporaryDirectories.push(directory);
+    const implementationPath = join(directory, "register.ts");
+    const workspace = new RepairWorkspace({
+      scenario: "api",
+      publicBrief: "Register an account.",
+      implementationContract: "Write one register.ts file.",
+      implementationPath,
+      currentImplementation: "export default () => new Response();",
+      frozenTrainTests: "",
+      initialTestResult: {
+        status: "RED",
+        summary: "A behavior is missing.",
+        output: "failed",
+      },
+      runTrainTests: async () => ({
+        status: "GREEN",
+        summary: "All train tests passed.",
+        output: "passed",
+      }),
+    });
+    await workspace.writeImplementation(
+      implementationPath,
+      "export default () => new Response(null, { status: 201 });",
+    );
+    const toolOutput = await workspace.runTrainTests();
     const invoke = repairToolUseBehavior as unknown as (
       context: unknown,
       results: unknown[],
     ) => Promise<unknown> | unknown;
 
+    expect(toolOutput).toMatchObject({
+      status: "GREEN",
+      decision: "stop-green",
+    });
     expect(
       await invoke({}, [
-        { type: "function_output", output: { decision: "continue" } },
-      ]),
-    ).toMatchObject({ isFinalOutput: false });
-    expect(
-      await invoke({}, [
-        { type: "function_output", output: { decision: "stop-green" } },
+        { type: "function_output", output: toolOutput },
       ]),
     ).toMatchObject({ isFinalOutput: true });
+  });
+
+  it("returns continue before the write limit and stop-limit at the limit", async () => {
+    const directory = await mkdtemp(join(tmpdir(), "lab02-repair-limit-"));
+    temporaryDirectories.push(directory);
+    const implementationPath = join(directory, "register.ts");
+    const workspace = new RepairWorkspace({
+      scenario: "api",
+      publicBrief: "Register an account.",
+      implementationContract: "Write one register.ts file.",
+      implementationPath,
+      currentImplementation: "export default () => new Response();",
+      frozenTrainTests: "",
+      initialTestResult: {
+        status: "RED",
+        summary: "A behavior is missing.",
+        output: "failed",
+      },
+      runTrainTests: async () => ({
+        status: "RED",
+        summary: "A behavior is still missing.",
+        output: "failed",
+      }),
+      maxRepairs: 2,
+    });
+
+    await workspace.writeImplementation(
+      implementationPath,
+      "export default () => new Response('first repair');",
+    );
+    await expect(workspace.runTrainTests()).resolves.toMatchObject({
+      decision: "continue",
+    });
+    await workspace.writeImplementation(
+      implementationPath,
+      "export default () => new Response('second repair');",
+    );
+    await expect(workspace.runTrainTests()).resolves.toMatchObject({
+      decision: "stop-limit",
+    });
   });
 
   it("allows four implementation writes by default and rejects a fifth", async () => {

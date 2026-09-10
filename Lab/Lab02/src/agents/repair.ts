@@ -17,6 +17,10 @@ import {
 
 export type RepairDecision = "continue" | "stop-green" | "stop-limit";
 
+export type RepairTestToolResult = TrainTestResult & {
+  readonly decision: RepairDecision;
+};
+
 export type RepairCheckpoint =
   | {
       readonly type: "implementation-written";
@@ -145,7 +149,7 @@ export class RepairWorkspace {
     return this.#files.writeFile(path, content);
   }
 
-  async runTrainTests(): Promise<TrainTestResult> {
+  async runTrainTests(): Promise<RepairTestToolResult> {
     this.#lastTestResult = compactTestResult(await this.#input.runTrainTests());
     this.#testedRepair = this.repairs;
     const decision: RepairDecision =
@@ -161,7 +165,7 @@ export class RepairWorkspace {
       result: this.#lastTestResult,
       decision,
     });
-    return this.#lastTestResult;
+    return { ...this.#lastTestResult, decision };
   }
 
   async ensureLatestImplementationWasTested(): Promise<TrainTestResult> {
