@@ -145,7 +145,13 @@ async function main(): Promise<void> {
               ),
               ...(signal === undefined ? {} : { signal }),
             }),
-      runTrainTests: (implementationPath, testPath, workspace, signal) =>
+      runTrainTests: (
+        implementationPath,
+        testPath,
+        workspace,
+        signal,
+        excludedTestNames,
+      ) =>
         scenario === "api"
           ? runApiTrainTests({
               implementationPath,
@@ -167,6 +173,9 @@ async function main(): Promise<void> {
                 "train-playwright-artifacts",
               ),
               timeoutDisposition: "red",
+              ...(excludedTestNames === undefined
+                ? {}
+                : { excludedTestNames }),
               ...(signal === undefined ? {} : { signal }),
             }),
       validate: (implementationPath, arm, workspace, signal) =>

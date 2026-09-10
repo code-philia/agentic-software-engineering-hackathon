@@ -44,6 +44,7 @@ export interface GuiTestOptions extends CommonTestOptions {
   readonly htmlPath: string;
   readonly browserOutputPath: string;
   readonly timeoutDisposition?: "test-error" | "red";
+  readonly excludedTestNames?: readonly string[];
 }
 
 interface VitestAssertionResult {
@@ -380,6 +381,13 @@ export async function runGuiTrainTests(
 
   let primaryError: unknown;
   try {
+    const excludedPattern =
+      options.excludedTestNames === undefined ||
+      options.excludedTestNames.length === 0
+        ? undefined
+        : options.excludedTestNames
+            .map((name) => name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
+            .join("|");
     const result = await runProcess(
       process.execPath,
       [
@@ -388,6 +396,9 @@ export async function runGuiTrainTests(
         resolve(options.testPath),
         "--config",
         playwrightConfig,
+        ...(excludedPattern === undefined
+          ? []
+          : ["--grep-invert", excludedPattern]),
       ],
       {
         cwd: projectRoot,

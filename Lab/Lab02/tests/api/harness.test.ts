@@ -63,6 +63,7 @@ describe("GUI server harness", () => {
     const server = await startGuiServer({ htmlPath });
     runningServers.push(server);
 
+    expect(server.url).toMatch(/^http:\/\/localhost:\d+$/);
     const page = await fetch(server.url);
     expect(page.status).toBe(200);
     expect(page.headers.get("content-type")).toContain("text/html");

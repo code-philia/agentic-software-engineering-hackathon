@@ -10,6 +10,8 @@ Exercise the page through accessible roles, labels, descriptions, and visible te
 
 Every test must make a meaningful browser-observable assertion. Keep the suite focused and non-redundant and choose its coverage yourself.
 
+Use only matchers documented by Playwright Test. Do not invent matcher names; when a convenience matcher does not exist, read the browser-observable value and assert it with standard `expect` primitives.
+
 Design the complete suite to finish comfortably within 60 seconds on a local page using one Playwright worker. A broad suite that cannot finish within the runner budget is invalid even when its individual assertions are meaningful. Group related boundary examples inside a small number of scenario tests instead of expanding one Playwright test for every table row. Avoid repeated long visibility waits and keep shared helpers and assertions compact.
 
 Do not assert an exact number of inputs, controls, containers, or other DOM nodes unless the task explicitly requires that number. For presentation checks, assert only the documented property; do not invent exact RGB values, pixel dimensions, shadows, DOM containers, or wording.

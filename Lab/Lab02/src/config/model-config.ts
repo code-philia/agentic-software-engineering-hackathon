@@ -14,12 +14,14 @@ export const supportedModels = [
   "kimi-k3",
   "glm-5.3",
   "glm-5.2",
-  "deepseek-v4-pro-0813",
-  "deepseek-v4-flash-0731",
   "deepseek-v4-pro",
+  "deepseek-v4-pro-0813",
   "deepseek-v4-flash",
+  "deepseek-v4-flash-0731",
 ] as const;
-export type SupportedModel = (typeof supportedModels)[number];
+// Providers own their model namespaces. This list documents models for which the
+// course has an explicit policy; it is not a client-side allowlist.
+export type SupportedModel = string;
 
 const codeOwnedModelFields = [
   "temperature",
@@ -33,6 +35,7 @@ export interface ModelConfig {
   readonly baseUrl: string;
   readonly apiKey: string;
   readonly model: SupportedModel;
+  readonly provider?: string;
 }
 
 export class ModelConfigError extends Error {
@@ -58,11 +61,6 @@ export async function loadModelConfig(
   }
 
   const runtimeEnv = parse(source);
-  if (runtimeEnv.provider?.trim()) {
-    throw new ModelConfigError(
-      `Invalid model configuration in ${absolutePath}: provider is no longer configured; remove it from the environment file`,
-    );
-  }
   const codeOwnedFieldsPresent = codeOwnedModelFields.filter(
     (field) => runtimeEnv[field]?.trim(),
   );
@@ -77,6 +75,7 @@ export async function loadModelConfig(
       base_url: z.url(),
       api_key: z.string().trim().min(1),
       model: z.string().trim().min(1),
+      provider: z.string().trim().min(1).optional(),
     },
     runtimeEnv,
     emptyStringAsUndefined: true,
@@ -88,18 +87,18 @@ export async function loadModelConfig(
     },
   });
 
-  const requestedModel = (modelOverride ?? env.model).trim().toLowerCase();
-  const parsedModel = z.enum(supportedModels).safeParse(requestedModel);
-  if (!parsedModel.success) {
-    throw new ModelConfigError(
-      `Unsupported model "${requestedModel}". Choose one of: ${supportedModels.join(", ")}`,
-    );
-  }
+  const requestedModel = (modelOverride ?? env.model).trim();
+  const canonicalKnownModel = supportedModels.find(
+    (model) => model.toLowerCase() === requestedModel.toLowerCase(),
+  );
 
   return {
     envFile: absolutePath,
     baseUrl: env.base_url,
     apiKey: env.api_key,
-    model: parsedModel.data,
+    // Keep convenient case-insensitive matching for documented models, but do
+    // not alter provider-specific identifiers that may be case-sensitive.
+    model: canonicalKnownModel ?? requestedModel,
+    ...(env.provider === undefined ? {} : { provider: env.provider }),
   };
 }

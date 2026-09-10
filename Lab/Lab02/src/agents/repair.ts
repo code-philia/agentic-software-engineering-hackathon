@@ -1,4 +1,9 @@
-import { Agent, MaxTurnsExceededError, tool } from "@openai/agents";
+import {
+  Agent,
+  MaxTurnsExceededError,
+  tool,
+  type ToolToFinalOutputFunction,
+} from "@openai/agents";
 import { z } from "zod";
 
 import type { TrainTestResult, TrainTestStatus } from "../testing/result.js";
@@ -29,9 +34,40 @@ export type RepairCheckpoint =
 const REPAIR_CORE_INSTRUCTIONS: readonly string[] = [
   "Repair the implementation by following the frozen executable tests and their actual feedback.",
   "Use write_file to replace the complete implementation, then use run_train_tests to observe the result.",
+  "Infer the general behavior required by each failure before editing. Fix the underlying validation, normalization, state transition, persistence, accessibility, or presentation rule rather than special-casing a test name or literal example.",
+  "When several failures share a cause, repair the shared logic comprehensively. Preserve behavior that already passes and apply the rule consistently to equivalent boundary values and later state transitions.",
+  "After each test run, compare the remaining failures with the previous result. If a failure repeats, reconsider the root cause and the complete behavior family instead of making another narrow patch to the same symptom.",
+  "Do not hard-code frozen test inputs, expected strings, or one-off branches solely to satisfy individual assertions.",
   "Do not change the tests. Stop when they are Green or no repair attempts remain.",
-  "When run_train_tests reports stop-green or stop-limit, return your final answer without calling another tool.",
+  "Alternate exactly one complete write_file call with one run_train_tests call. The runtime, not prose, decides when the loop stops.",
 ];
+
+export const repairToolUseBehavior: ToolToFinalOutputFunction = (
+  _context,
+  toolResults,
+) => {
+  for (const result of toolResults) {
+    if (
+      result.type === "function_output" &&
+      typeof result.output === "object" &&
+      result.output !== null &&
+      "decision" in result.output &&
+      (result.output.decision === "stop-green" ||
+        result.output.decision === "stop-limit")
+    ) {
+      return {
+        isFinalOutput: true,
+        isInterrupted: undefined,
+        finalOutput: JSON.stringify(result.output),
+      };
+    }
+  }
+  return { isFinalOutput: false, isInterrupted: undefined };
+};
+
+export function implementationRepairLimit(scenario: CourseScenario): number {
+  return scenario === "gui" ? 4 : 3;
+}
 
 export interface RepairInput {
   readonly scenario: CourseScenario;
@@ -80,7 +116,7 @@ export class RepairWorkspace {
 
   constructor(input: RepairInput) {
     this.#input = input;
-    this.#maxRepairs = input.maxRepairs ?? 3;
+    this.#maxRepairs = input.maxRepairs ?? implementationRepairLimit(input.scenario);
     this.#lastTestResult = input.initialTestResult;
     this.#files = new AgentFileWorkspace({
       artifactKind: `${input.scenario}-implementation`,
@@ -140,7 +176,7 @@ export async function runTddRepair(
   runtime: CourseModelRuntime,
   input: RepairInput,
 ): Promise<RepairResult> {
-  const maxRepairs = input.maxRepairs ?? 3;
+  const maxRepairs = input.maxRepairs ?? implementationRepairLimit(input.scenario);
   const workspace = new RepairWorkspace(input);
   const writeFile = tool({
     name: "write_file",
@@ -174,9 +210,14 @@ export async function runTddRepair(
   const agent = new Agent({
     name: "TDD Repair Agent",
     model: runtime.config.model,
-    modelSettings: runtime.modelSettings,
+    modelSettings: {
+      ...runtime.modelSettingsFor("implementation-repair"),
+      toolChoice: "required",
+    },
     instructions,
     tools: [writeFile, runTrainTests],
+    toolUseBehavior: repairToolUseBehavior,
+    resetToolChoice: false,
   });
   let result;
   try {
