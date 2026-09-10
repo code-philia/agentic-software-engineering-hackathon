@@ -5,6 +5,7 @@ import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 
 import {
+  implementationRepairInstructions,
   implementationRepairLimit,
   repairToolUseBehavior,
   RepairWorkspace,
@@ -63,6 +64,18 @@ describe("GUI prompt and repair tuning", () => {
     expect(instructions).toContain("A password-confirmation mismatch belongs to confirmPassword");
     expect(instructions).toContain("fillRegistration keeps all companion fields valid");
     expect(instructions).toContain("use await expectFirstInvalid(page)");
+  });
+
+  it("gives GUI repair an explicit coherent policy without changing Direct", () => {
+    const instructions = implementationRepairInstructions(
+      "gui",
+      "Write one index.html file.",
+    );
+
+    expect(instructions).toContain("Password1 and Abcdefgh1 are 9 characters");
+    expect(instructions).toContain("Compare stored usernames case-insensitively");
+    expect(instructions).toContain("visible field explanations through aria-describedby");
+    expect(instructions).toContain("never store passwords");
   });
 
   it("ends the repair agent from the real train-test tool output when tests turn green", async () => {

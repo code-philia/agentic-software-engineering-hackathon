@@ -49,6 +49,26 @@ const REPAIR_CORE_INSTRUCTIONS: readonly string[] = [
   "Alternate exactly one complete write_file call with one run_train_tests call. The runtime, not prose, decides when the loop stops.",
 ];
 
+const GUI_REPAIR_STABILITY_GUIDANCE = `For this GUI repair, implement these registration rules as one coherent policy rather than guessing them one failure at a time:
+- Trim the username, preserve its trimmed spelling, require 3 through 20 characters, start with an ASCII letter, and then allow only ASCII letters, digits, or underscores. Compare stored usernames case-insensitively.
+- Trim the email and store it lowercase. Require one non-empty local part, one at-sign, and a multi-label domain; reject whitespace, repeated dots, dot-bounded local parts, and empty or hyphen-bounded domain labels. Compare stored email addresses after the same normalization.
+- Require passwords to be 10 through 64 characters with at least one ASCII letter and one digit. Password1 and Abcdefgh1 are 9 characters and invalid. Letter case is otherwise unrestricted. Confirmation must match exactly.
+- Date of birth is optional; a supplied value must be a real YYYY-MM-DD date. Terms acceptance is required.
+- On rejection, expose visible field explanations through aria-describedby, mark invalid controls accessibly, show an alert summary, and focus the first invalid control. Clear stale errors after correction.
+- One accessible Show/Hide action must toggle both password inputs and update its accessible action name.
+- Persist multiple normalized public accounts across reloads, reject duplicate username or email independently, never reserve identifiers from rejected submissions, and never store passwords or password-named properties.`;
+
+export function implementationRepairInstructions(
+  scenario: CourseScenario,
+  implementationContract: string,
+): string {
+  return [
+    ...REPAIR_CORE_INSTRUCTIONS,
+    ...(scenario === "gui" ? [GUI_REPAIR_STABILITY_GUIDANCE] : []),
+    `Follow this implementation contract exactly:\n\n${implementationContract}`,
+  ].join("\n\n");
+}
+
 export const repairToolUseBehavior: ToolToFinalOutputFunction = (
   _context,
   toolResults,
@@ -217,10 +237,10 @@ export async function runTddRepair(
     parameters: z.object({}),
     execute: () => workspace.runTrainTests(),
   });
-  const instructions = [
-    ...REPAIR_CORE_INSTRUCTIONS,
-    `Follow this implementation contract exactly:\n\n${input.implementationContract}`,
-  ].join("\n\n");
+  const instructions = implementationRepairInstructions(
+    input.scenario,
+    input.implementationContract,
+  );
   const promptInput = [
     `Registration task:\n\n${input.publicBrief}`,
     `Current implementation:\n\n${input.currentImplementation}`,
