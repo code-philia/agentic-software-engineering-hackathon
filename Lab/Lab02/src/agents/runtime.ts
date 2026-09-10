@@ -73,7 +73,7 @@ export const executionPolicy: ExecutionPolicy = {
     doctor: 2_048,
     direct: 12_000,
     "test-generation": 8_192,
-    "test-repair": 8_192,
+    "test-repair": 12_000,
     "implementation-repair": 8_192,
   },
   maxTransientRetries: 1,
@@ -106,6 +106,7 @@ const modelInferencePolicies: Readonly<
   >>
 > = {
   "qwen3.8-max": qwenNonThinkingPolicy,
+  "qwen3.7-max": qwenNonThinkingPolicy,
   "qwen3.7-plus": qwenNonThinkingPolicy,
   "qwen3.6-flash": qwenNonThinkingPolicy,
   "qwen3.6-plus": qwenNonThinkingPolicy,

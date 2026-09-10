@@ -124,7 +124,7 @@ npm run doctor
 
 ## 二、上课流程
 
-今天只进行 Registration API 实验。实验分为 Act 0–5，程序会在每个 Act 结束时暂停；阅读终端内容后按 Enter 继续，不需要重复输入命令。
+实验包含 Registration API 与 Registration GUI 两个场景。每个场景都分为 Act 0–5，程序会在每个 Act 结束时暂停；阅读终端内容后按 Enter 继续，不需要重复输入命令。
 
 ### 1. 理解实验对照
 
@@ -136,7 +136,7 @@ npm run doctor
 
 Direct 和 TDD 使用相同的任务、相同的模型和相同的初始代码，区别仅在于 TDD 分支拥有测试反馈闭环。
 
-### 2. 运行 Registration API 实验
+### 2. 运行实验
 
 在 VS Code 终端中执行：
 
@@ -144,14 +144,38 @@ Direct 和 TDD 使用相同的任务、相同的模型和相同的初始代码�
 npm run demo:api
 ```
 
+GUI 场景执行：
+
+```bash
+npm run demo:gui
+```
+
+GUI 运行会依次打开教师标准页面、Direct 页面和最终 TDD 页面。可以在浏览器中填写、提交和调整窗口宽度，再回到终端按 Enter 继续。若用于无人值守的模型评测，可以关闭暂停与自动打开浏览器：
+
+```bash
+npm run demo:gui -- --no-interactive --no-open --model deepseek-v4-flash
+```
+
 按照终端提示依次观察：
 
-1. **Act 0 — Review the task**：阅读注册 API 的任务要求和实验结构。
-2. **Act 1 — Generate the Direct implementation**：模型生成 `register.ts`，程序同时复制一份作为 TDD 的起点。
+1. **Act 0 — Review the task**：阅读注册任务要求和实验结构；GUI 场景还可以先查看标准页面。
+2. **Act 1 — Generate the Direct implementation**：模型生成 `register.ts` 或 `index.html`，程序同时复制一份作为 TDD 的起点。
 3. **Act 2 — Check the Direct result**：使用教师验证检查未经修复的 Direct 实现，记录各类别的通过情况。
-4. **Act 3 — Generate train tests**：模型生成 Vitest 可执行测试；测试会先在教师参考实现上检查，确认测试本身可以运行且符合任务要求。
-5. **Act 4 — Establish Red and repair toward Green**：在 TDD 副本上运行训练测试，先观察 Red，再让模型根据测试反馈修复，直到 Green 或达到最多三轮修复。
+4. **Act 3 — Generate train tests**：模型生成 Vitest 或 Playwright 可执行测试；测试会先在教师参考实现上检查，只有完整通过后才会冻结并用于 TDD。
+5. **Act 4 — Establish Red and repair toward Green**：在 TDD 副本上运行训练测试，先观察 Red，再让模型根据测试反馈修复，直到 Green 或达到修复上限。
 6. **Act 5 — Compare Direct and TDD**：再次运行教师验证，并比较 Direct 与 TDD 的最终结果、耗时和模型调用情况。
+
+每个模型阶段结束后，终端会显示该阶段的耗时、请求数以及 input、output、total tokens。整次运行最后还会输出一行 `MODEL_RUN_SUMMARY` JSON；自动化脚本可以直接解析这一行，完整数据也会保存在该次运行的 `result.json` 中。
+
+批量运行后可直接汇总 GUI 结果：
+
+```bash
+npm run summarize:runs
+# 只统计某个 run id 之后的结果
+npm run summarize:runs -- --after 20260910T162353Z
+```
+
+表中的成功定义为：参考实现上的 train suite 全绿、TDD 最终 train suite 全绿、流程结果为 `GREEN`，并且 TDD 的隐藏 validation 通过数高于 Direct。失败运行计入 Attempts 和成功率分母；tokens、模型用时、Direct/TDD validation 及提升值的平均数只使用成功运行，便于直接放入课堂对比表。
 
 ### 3. 比较与讨论
 
@@ -164,4 +188,4 @@ npm run demo:api
 
 一次实验结果不代表 TDD 一定优于 Direct。请根据屏幕上的实际结果得出结论，不要为了得到全绿结果而修改教师验证。
 
-实验生成的当前代码与测试位于 `workspace/api/`；每次运行的完整记录位于 `runs/`。这些目录可能包含模型生成的代码，请不要在存有无关敏感信息的环境中运行或扩展它们。
+实验生成的当前代码与测试位于 `workspace/api/` 或 `workspace/gui/`；每次运行的完整记录位于 `runs/`。这些目录可能包含模型生成的代码，请不要在存有无关敏感信息的环境中运行或扩展它们。

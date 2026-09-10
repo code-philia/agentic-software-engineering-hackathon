@@ -3,7 +3,10 @@ import { join } from "node:path";
 
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import type { GenerationResult } from "../../src/agents/generate.js";
+import {
+  GenerationArtifactError,
+  type GenerationResult,
+} from "../../src/agents/generate.js";
 import type { RepairResult } from "../../src/agents/repair.js";
 import { ArtifactExtractionError } from "../../src/generation/artifact.js";
 import { createRunLogger } from "../../src/logging/run-logger.js";
@@ -65,6 +68,7 @@ function validation(passed: number): ValidationResult {
 class RecordingPresenter implements CoursePresenter {
   readonly checkpoints: string[] = [];
   readonly trainStatuses: string[] = [];
+  readonly modelCalls: Array<{ readonly status?: "completed" | "failed" }> = [];
 
   start(): void {}
   act(): void {}
@@ -93,6 +97,9 @@ class RecordingPresenter implements CoursePresenter {
   }
   finish(): void {}
   failure(): void {}
+  modelCall(view: { readonly status?: "completed" | "failed" }): void {
+    this.modelCalls.push(view);
+  }
 }
 
 describe("run logger", () => {
@@ -110,7 +117,7 @@ describe("run logger", () => {
 });
 
 describe("course scenario orchestrator", () => {
-  it("accepts a half-green executable GUI reference suite and quarantines its failures", async () => {
+  it("requires a GUI train suite to become fully green on the reference", async () => {
     const outputRoot = await localTemporaryDirectory();
     const presenter = new RecordingPresenter();
     const reference: TrainTestResult = {
@@ -134,8 +141,11 @@ describe("course scenario orchestrator", () => {
       failed: 0,
       failures: [],
     };
-    const repairTests = vi.fn(async () => {
-      throw new Error("A 50%-passing executable GUI suite is accepted.");
+    const repairTests = vi.fn(async (input) => {
+      const tests =
+        'import { test } from "@playwright/test";\ntest("repaired", async () => {});\n';
+      await writeFile(input.artifactPath, tests, "utf8");
+      return generation(tests);
     });
     const runTrainTests = vi.fn(async () => green);
     const source = "<!doctype html><html><body><h1>Register</h1></body></html>\n";
@@ -161,7 +171,10 @@ describe("course scenario orchestrator", () => {
           return generation(tests);
         }),
         repairTests,
-        runReferenceTrainTests: vi.fn(async () => reference),
+        runReferenceTrainTests: vi
+          .fn()
+          .mockResolvedValueOnce(reference)
+          .mockResolvedValue(green),
         runTrainTests,
         repairImplementation: vi.fn(async () => {
           throw new Error("The trusted subset is already Green.");
@@ -172,20 +185,18 @@ describe("course scenario orchestrator", () => {
 
     expect(result).toMatchObject({
       outcome: "GREEN",
-      testRepairs: 0,
-      quarantinedTrainTests: ["fragile visual probe", "duplicate probe"],
+      testRepairs: 1,
     });
-    expect(repairTests).not.toHaveBeenCalled();
+    expect(repairTests).toHaveBeenCalledOnce();
     expect(runTrainTests).toHaveBeenCalledWith(
       expect.any(String),
       expect.any(String),
       expect.any(Object),
       expect.any(AbortSignal),
-      ["fragile visual probe", "duplicate probe"],
     );
   });
 
-  it("uses the full rewrite budget for infrastructure and semantic reference failures", async () => {
+  it("stops rewriting when a deterministic repair leaves the suite unchanged", async () => {
     const outputRoot = await localTemporaryDirectory();
     const presenter = new RecordingPresenter();
     const invalidTrainSuite: TrainTestResult = {
@@ -252,12 +263,12 @@ describe("course scenario orchestrator", () => {
 
     expect(result).toMatchObject({
       outcome: "INVALID_TRAIN_SUITE",
-      testRepairs: 3,
+      testRepairs: 2,
       repairs: 0,
       referenceTrainResult: { status: "RED" },
     });
-    expect(repairTests).toHaveBeenCalledTimes(3);
-    expect(referenceRuns).toBe(4);
+    expect(repairTests).toHaveBeenCalledTimes(2);
+    expect(referenceRuns).toBe(2);
     expect(repairTests).toHaveBeenCalledWith(
       expect.objectContaining({
         referenceStatus: "TEST_ERROR",
@@ -392,10 +403,20 @@ describe("course scenario orchestrator", () => {
         direct: { totalTokens: number };
         implementationRepair: { totalTokens: number };
       };
+      modelPerformance: {
+        stages: number;
+        requests: number;
+        totalTokens: number;
+      };
     };
     expect(saved.outcome).toBe("GREEN");
     expect(saved.modelUsage.direct.totalTokens).toBe(30);
     expect(saved.modelUsage.implementationRepair.totalTokens).toBe(50);
+    expect(saved.modelPerformance).toMatchObject({
+      stages: 3,
+      requests: 4,
+      totalTokens: 110,
+    });
     await expect(
       readFile(join(result.runRoot, "raw", "direct-implementation.ts"), "utf8"),
     ).resolves.toContain("status: 201");
@@ -452,6 +473,76 @@ describe("course scenario orchestrator", () => {
       await readFile(join(outputRoot, "runs", runId!, "result.json"), "utf8"),
     ) as { outcome: string };
     expect(saved.outcome).toBe("GENERATION_ERROR");
+  });
+
+  it("includes usage from a failed artifact delivery in model totals", async () => {
+    const outputRoot = await localTemporaryDirectory();
+    const presenter = new RecordingPresenter();
+    const usage = generation("unused").usage;
+    const notReached = vi.fn(async () => {
+      throw new Error("not reached");
+    });
+
+    await expect(
+      runCourseScenario({
+        scenario: "api",
+        publicBrief: "Register a user.",
+        implementationContract: "Export a registration handler.",
+        testContract: "Write executable Vitest tests.",
+        modelName: "fake-model",
+        envFile: ".fake.env",
+        presenter,
+        runsRoot: join(outputRoot, "runs"),
+        workspaceRoot: join(outputRoot, "workspace"),
+        services: {
+          generateDirect: vi.fn(async () => {
+            throw new GenerationArtifactError(
+              "The agent did not call write_file.",
+              {
+                rawOutput: "I forgot to write the file.",
+                usage,
+                rawResponses: [],
+                prompt: { instructions: "write it", input: "task" },
+              },
+            );
+          }),
+          generateTests: notReached,
+          repairTests: notReached,
+          repairImplementation: notReached,
+          runTrainTests: notReached,
+          runReferenceTrainTests: notReached,
+          validate: notReached,
+        },
+      }),
+    ).rejects.toThrow(GenerationArtifactError);
+
+    expect(presenter.modelCalls.map((call) => call.status)).toEqual(["failed"]);
+    const [runId] = await readdir(join(outputRoot, "runs"));
+    const saved = JSON.parse(
+      await readFile(join(outputRoot, "runs", runId!, "result.json"), "utf8"),
+    ) as {
+      modelPerformance: {
+        stages: number;
+        totalTokens: number;
+        calls: Array<{ status: string }>;
+      };
+    };
+    expect(saved.modelPerformance).toMatchObject({
+      stages: 1,
+      totalTokens: 30,
+      calls: [{ status: "failed" }],
+    });
+    const evidenceFiles = await readdir(
+      join(outputRoot, "runs", runId!, "raw"),
+    );
+    expect(evidenceFiles).toEqual(
+      expect.arrayContaining([
+        "failed-direct-1-failure.json",
+        "failed-direct-1-prompt.json",
+        "failed-direct-1-raw-responses.json",
+        "failed-direct-1-response.txt",
+      ]),
+    );
   });
 
   it("records cancellation as RUN_ERROR before starting another stage", async () => {

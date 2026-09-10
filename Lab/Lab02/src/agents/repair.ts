@@ -41,6 +41,9 @@ const REPAIR_CORE_INSTRUCTIONS: readonly string[] = [
   "Infer the general behavior required by each failure before editing. Fix the underlying validation, normalization, state transition, persistence, accessibility, or presentation rule rather than special-casing a test name or literal example.",
   "When several failures share a cause, repair the shared logic comprehensively. Preserve behavior that already passes and apply the rule consistently to equivalent boundary values and later state transitions.",
   "After each test run, compare the remaining failures with the previous result. If a failure repeats, reconsider the root cause and the complete behavior family instead of making another narrow patch to the same symptom.",
+  "If the passing count drops, treat that as a regression: restore the behavior of the most recent higher-passing implementation and apply the next fix on top of that version instead of continuing from the regression.",
+  "Remember that native HTML constraints such as maxlength can silently alter or block a value before JavaScript observes it. When executable tests require application feedback for an invalid submitted value, do not let a native constraint truncate that value into a different valid one.",
+  "For persisted identity and duplicate checks, apply the same normalization to the new candidate and every stored record before comparing them. Do not normalize only one side.",
   "Do not hard-code frozen test inputs, expected strings, or one-off branches solely to satisfy individual assertions.",
   "Do not change the tests. Stop when they are Green or no repair attempts remain.",
   "Alternate exactly one complete write_file call with one run_train_tests call. The runtime, not prose, decides when the loop stops.",
@@ -70,7 +73,7 @@ export const repairToolUseBehavior: ToolToFinalOutputFunction = (
 };
 
 export function implementationRepairLimit(scenario: CourseScenario): number {
-  return scenario === "gui" ? 4 : 3;
+  return scenario === "gui" ? 5 : 3;
 }
 
 export interface RepairInput {
@@ -117,11 +120,13 @@ export class RepairWorkspace {
   readonly #maxRepairs: number;
   #testedRepair = 0;
   #lastTestResult: TrainTestResult;
+  #currentImplementation: string;
 
   constructor(input: RepairInput) {
     this.#input = input;
     this.#maxRepairs = input.maxRepairs ?? implementationRepairLimit(input.scenario);
     this.#lastTestResult = input.initialTestResult;
+    this.#currentImplementation = input.currentImplementation;
     this.#files = new AgentFileWorkspace({
       artifactKind: `${input.scenario}-implementation`,
       allowedPath: input.implementationPath,
@@ -146,7 +151,18 @@ export class RepairWorkspace {
   }
 
   async writeImplementation(path: string, content: string) {
-    return this.#files.writeFile(path, content);
+    if (content.trim() === this.#currentImplementation.trim()) {
+      return {
+        accepted: false,
+        message:
+          "Write rejected because the implementation is unchanged while the train suite is not Green. " +
+          `Current result: ${this.#lastTestResult.summary} ` +
+          "Use the remaining failure feedback and make a substantive correction before writing again.",
+      };
+    }
+    const result = await this.#files.writeFile(path, content);
+    if (result.accepted) this.#currentImplementation = content;
+    return result;
   }
 
   async runTrainTests(): Promise<RepairTestToolResult> {
@@ -226,13 +242,12 @@ export async function runTddRepair(
   let result;
   try {
     result = await runtime.runner.run(agent, promptInput, {
-      maxTurns: maxRepairs * 2 + 1,
+      maxTurns: maxRepairs * 3 + 1,
       ...(input.signal === undefined ? {} : { signal: input.signal }),
     });
   } catch (error) {
     if (
       !(error instanceof MaxTurnsExceededError) ||
-      workspace.repairs < maxRepairs ||
       error.state === undefined
     ) {
       throw error;

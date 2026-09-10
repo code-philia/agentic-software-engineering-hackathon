@@ -1,5 +1,5 @@
 import { createRequire } from "node:module";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { copyFile, mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -26,6 +26,9 @@ const vitestConfig = fileURLToPath(
 );
 const playwrightConfig = fileURLToPath(
   new URL("./playwright.generated.config.ts", import.meta.url),
+);
+const courseGuiTestSupport = fileURLToPath(
+  new URL("./course-gui-test-support.ts", import.meta.url),
 );
 
 interface CommonTestOptions {
@@ -94,6 +97,19 @@ function firstLine(message: string): string {
   return message.split("\n")[0]?.trim() ?? message.trim();
 }
 
+function boundedPlaywrightMessage(message: string): string {
+  const withoutAnsi = message.replace(/\u001B\[[0-?]*[ -/]*[@-~]/g, "");
+  const usefulLines = withoutAnsi
+    .split("\n")
+    .map((line) => line.trimEnd())
+    .filter((line) => line.trim().length > 0)
+    .slice(0, 14)
+    .join("\n");
+  return usefulLines.length <= 1_200
+    ? usefulLines
+    : `${usefulLines.slice(0, 1_200)}\n[message truncated]`;
+}
+
 function vitestFailures(report: VitestReport): TrainTestFailure[] {
   const failures = (report.testResults ?? []).flatMap(
     (file) => file.assertionResults ?? [],
@@ -115,7 +131,7 @@ function playwrightFailures(report: PlaywrightReport): TrainTestFailure[] {
       for (const spec of suite.specs ?? []) {
         for (const test of spec.tests ?? []) {
           if (test.status === "expected") continue;
-          const message = firstLine(
+          const message = boundedPlaywrightMessage(
             test.results?.find((result) => result.error?.message)?.error
               ?.message ?? "no failure message",
           );
@@ -377,6 +393,10 @@ export async function runApiTrainTests(
 export async function runGuiTrainTests(
   options: GuiTestOptions,
 ): Promise<TrainTestResult> {
+  await copyFile(
+    courseGuiTestSupport,
+    join(dirname(resolve(options.testPath)), "course-gui-test-support.ts"),
+  );
   const server = await startGuiServer({ htmlPath: options.htmlPath });
 
   let primaryError: unknown;

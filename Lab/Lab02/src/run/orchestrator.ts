@@ -7,6 +7,7 @@ import type {
   TestRepairInput,
 } from "../agents/generate.js";
 import {
+  GenerationArtifactError,
   generateDirectImplementation,
   generateTrainTests,
   repairTrainTests,
@@ -27,7 +28,10 @@ import {
 } from "../agents/runtime.js";
 import { ArtifactExtractionError } from "../generation/artifact.js";
 import { createRunLogger } from "../logging/run-logger.js";
-import type { CoursePresenter } from "../presentation/presenter.js";
+import type {
+  CoursePresenter,
+  ModelRunSummary,
+} from "../presentation/presenter.js";
 import type { TrainTestResult } from "../testing/result.js";
 import type { ValidationResult } from "../validation/result.js";
 import {
@@ -109,7 +113,6 @@ export interface ScenarioRunResult {
   readonly initialTrainResult?: TrainTestResult;
   readonly referenceTrainResult?: TrainTestResult;
   readonly finalTrainResult?: TrainTestResult;
-  readonly quarantinedTrainTests?: readonly string[];
   readonly testRepairs: number;
   readonly repairs: number;
   readonly modelUsage: {
@@ -118,36 +121,10 @@ export interface ScenarioRunResult {
     readonly testRepairs: readonly UsageSnapshot[];
     readonly implementationRepair?: UsageSnapshot;
   };
+  readonly modelPerformance: ModelRunSummary;
 }
 
-export const GUI_REFERENCE_MINIMUM_PASS_RATIO = 0.5;
-
-function referenceSuiteIsAccepted(
-  scenario: CourseScenario,
-  result: TrainTestResult,
-): boolean {
-  if (result.status === "GREEN") return true;
-  if (
-    scenario !== "gui" ||
-    result.status !== "RED" ||
-    result.total === undefined ||
-    result.total === 0 ||
-    result.passed === undefined ||
-    result.failed === undefined ||
-    result.failed === 0 ||
-    result.failures === undefined ||
-    result.failures.length === 0
-  ) {
-    return false;
-  }
-  return result.passed / result.total >= GUI_REFERENCE_MINIMUM_PASS_RATIO;
-}
-
-function quarantinedTestNames(result: TrainTestResult): readonly string[] {
-  return [...new Set((result.failures ?? []).map((failure) => failure.name))];
-}
-
-const MAX_REFERENCE_FEEDBACK_CHARACTERS = 12_000;
+const MAX_REFERENCE_FEEDBACK_CHARACTERS = 6_000;
 
 function safePromptPreview(
   role: "implementation" | "tests",
@@ -170,6 +147,16 @@ function safePromptPreview(
 }
 
 function referenceFeedback(result: TrainTestResult): string {
+  if (result.failures && result.failures.length > 0) {
+    const structured = result.failures
+      .map((failure) => `- ${failure.name}:\n${failure.message}`)
+      .join("\n\n");
+    const bounded =
+      structured.length <= MAX_REFERENCE_FEEDBACK_CHARACTERS
+        ? structured
+        : `${structured.slice(0, MAX_REFERENCE_FEEDBACK_CHARACTERS)}\n[feedback truncated]`;
+    return `${result.summary}\n\n${bounded}`;
+  }
   const output =
     result.output.length <= MAX_REFERENCE_FEEDBACK_CHARACTERS
       ? result.output
@@ -250,6 +237,38 @@ export async function runCourseScenario(
   const activeRunDeadlineMs =
     options.deadlineMs ?? executionPolicy.scenarioDeadlineMs[options.scenario];
   let activeRunDurationMs = 0;
+  const modelCalls: Array<{
+    stage: string;
+    durationMs: number;
+    usage: UsageSnapshot;
+  }> = [];
+  const modelStageAttempts = new Map<string, number>();
+  const modelPerformance = (): ModelRunSummary => ({
+    model: options.modelName,
+    stages: modelCalls.length,
+    durationMs: modelCalls.reduce((total, call) => total + call.durationMs, 0),
+    requests: modelCalls.reduce(
+      (total, call) => total + call.usage.requests,
+      0,
+    ),
+    inputTokens: modelCalls.reduce(
+      (total, call) => total + call.usage.inputTokens,
+      0,
+    ),
+    outputTokens: modelCalls.reduce(
+      (total, call) => total + call.usage.outputTokens,
+      0,
+    ),
+    totalTokens: modelCalls.reduce(
+      (total, call) => total + call.usage.totalTokens,
+      0,
+    ),
+    calls: [...modelCalls],
+  });
+  const finishPresentation = (): void => {
+    options.presenter.modelSummary?.(modelPerformance());
+    options.presenter.finish(workspace.root);
+  };
   const generationInput: GenerationInput = {
     scenario: options.scenario,
     publicBrief: options.publicBrief,
@@ -303,10 +322,76 @@ export async function runCourseScenario(
     action: (signal: AbortSignal) => Promise<T>,
     present = true,
   ): Promise<T> => {
+    const attempt = (modelStageAttempts.get(modelStageName) ?? 0) + 1;
+    modelStageAttempts.set(modelStageName, attempt);
     logger.info({ event: "model_started", stage: modelStageName });
+    const startedAt = performance.now();
     try {
-      return await stage(presentationName, action, present);
+      const value = await stage(presentationName, action, present);
+      const durationMs = Math.round(performance.now() - startedAt);
+      if (
+        typeof value === "object" &&
+        value !== null &&
+        "usage" in value
+      ) {
+        const usage = value.usage as UsageSnapshot;
+        const call = {
+          stage: modelStageName,
+          durationMs,
+          usage,
+          status: "completed" as const,
+        };
+        modelCalls.push(call);
+        options.presenter.modelCall?.(call);
+      }
+      return value;
     } catch (error) {
+      if (error instanceof GenerationArtifactError) {
+        const durationMs = Math.round(performance.now() - startedAt);
+        const call = {
+          stage: modelStageName,
+          durationMs,
+          usage: error.usage,
+          status: "failed" as const,
+        };
+        modelCalls.push(call);
+        options.presenter.modelCall?.(call);
+        const evidenceName =
+          `failed-${modelStageName.replace(/[^a-z0-9-]+/gi, "-")}-${attempt}`;
+        try {
+          await Promise.all([
+            writeFile(
+              join(workspace.rawDirectory, `${evidenceName}-response.txt`),
+              error.rawOutput,
+              "utf8",
+            ),
+            writeJsonFile(
+              join(workspace.rawDirectory, `${evidenceName}-raw-responses.json`),
+              error.rawResponses,
+            ),
+            writeJsonFile(
+              join(workspace.rawDirectory, `${evidenceName}-prompt.json`),
+              error.prompt,
+            ),
+            writeJsonFile(
+              join(workspace.rawDirectory, `${evidenceName}-failure.json`),
+              {
+                name: error.name,
+                message: error.message,
+                durationMs,
+                usage: error.usage,
+              },
+            ),
+          ]);
+        } catch (persistenceError) {
+          logger.warn({
+            event: "failed_model_evidence_write_failed",
+            stage: modelStageName,
+            attempt,
+            error: persistenceError,
+          });
+        }
+      }
       logger.error({ event: "model_failed", stage: modelStageName, error });
       throw error;
     }
@@ -537,10 +622,9 @@ export async function runCourseScenario(
         let testRepairs = 0;
         const testRepairUsage: UsageSnapshot[] = [];
         while (
-          !referenceSuiteIsAccepted(options.scenario, referenceTrainResult) &&
+          referenceTrainResult.status !== "GREEN" &&
           testRepairs < maxTestRepairs
         ) {
-          if (referenceTrainResult.status === "GREEN") break;
           testRepairs += 1;
           logger.warn({
             event: "train_tests_need_repair",
@@ -566,6 +650,7 @@ export async function runCourseScenario(
               }),
             false,
           );
+          const repairChanged = repairedTests.content !== currentTests.content;
           currentTests = repairedTests;
           testRepairUsage.push(repairedTests.usage);
           const testRepairPromptPath = join(
@@ -599,6 +684,13 @@ export async function runCourseScenario(
             referenceStatus,
             usage: repairedTests.usage,
           });
+          if (!repairChanged) {
+            logger.warn({
+              event: "train_tests_repair_unchanged",
+              attempt: testRepairs,
+            });
+            break;
+          }
           referenceTrainResult = await stage(
             "Check generated train tests",
             (signal) =>
@@ -642,7 +734,7 @@ export async function runCourseScenario(
       testRepairUsage,
     } = preparedTrainSuite;
 
-    if (!referenceSuiteIsAccepted(options.scenario, referenceTrainResult)) {
+    if (referenceTrainResult.status !== "GREEN") {
       const reason = `The train suite could not be verified after ${testRepairs} rewrite attempt(s).`;
       const invalidResult: ScenarioRunResult = {
         outcome: "INVALID_TRAIN_SUITE",
@@ -659,6 +751,7 @@ export async function runCourseScenario(
           testGeneration: testGenerationUsage,
           testRepairs: testRepairUsage,
         },
+        modelPerformance: modelPerformance(),
       };
       await writeJsonFile(
         workspace.resultFile,
@@ -670,20 +763,8 @@ export async function runCourseScenario(
         reason,
       });
       options.presenter.failure(reason);
-      options.presenter.finish(workspace.root);
+      finishPresentation();
       return invalidResult;
-    }
-
-    const quarantinedTrainTests =
-      referenceTrainResult.status === "RED"
-        ? quarantinedTestNames(referenceTrainResult)
-        : [];
-    if (quarantinedTrainTests.length > 0) {
-      logger.warn({
-        event: "train_tests_quarantined",
-        minimumPassRatio: GUI_REFERENCE_MINIMUM_PASS_RATIO,
-        tests: quarantinedTrainTests,
-      });
     }
 
     options.presenter.artifact({
@@ -714,7 +795,6 @@ export async function runCourseScenario(
           workspace.trainTests,
           workspace,
           signal,
-          quarantinedTrainTests,
         ),
     );
 
@@ -742,6 +822,7 @@ export async function runCourseScenario(
           testGeneration: testGenerationUsage,
           testRepairs: testRepairUsage,
         },
+        modelPerformance: modelPerformance(),
       };
       await writeJsonFile(
         workspace.resultFile,
@@ -751,7 +832,7 @@ export async function runCourseScenario(
       options.presenter.failure(
         "The verified train suite could not run against the unchanged baseline.",
       );
-      options.presenter.finish(workspace.root);
+      finishPresentation();
       return invalidResult;
     }
 
@@ -786,7 +867,6 @@ export async function runCourseScenario(
                 workspace.trainTests,
                 workspace,
                 signal,
-                quarantinedTrainTests,
               ),
             onCheckpoint: async (checkpoint) => {
               if (checkpoint.type === "implementation-written") {
@@ -905,9 +985,6 @@ export async function runCourseScenario(
       referenceTrainResult,
       initialTrainResult,
       finalTrainResult,
-      ...(quarantinedTrainTests.length === 0
-        ? {}
-        : { quarantinedTrainTests }),
       testRepairs,
       repairs,
       modelUsage: {
@@ -918,13 +995,14 @@ export async function runCourseScenario(
           ? {}
           : { implementationRepair: implementationRepairUsage }),
       },
+      modelPerformance: modelPerformance(),
     };
     await writeJsonFile(
       workspace.resultFile,
       resultForFile(completedResult, options),
     );
     logger.info({ event: "run_completed", outcome, testRepairs, repairs });
-    options.presenter.finish(workspace.root);
+    finishPresentation();
     return completedResult;
   } catch (error) {
     primaryError = error;
@@ -935,6 +1013,7 @@ export async function runCourseScenario(
         : "RUN_ERROR";
     try {
       options.presenter.failure(message);
+      options.presenter.modelSummary?.(modelPerformance());
     } catch {
       // Preserve the experiment error if the presentation stream has already closed.
     }
@@ -950,6 +1029,7 @@ export async function runCourseScenario(
         runRoot: workspace.root,
         workspaceRoot: workspace.workspaceRoot,
         modelConfiguration: modelConfigurationForFile(options),
+        modelPerformance: modelPerformance(),
         error: { name: error instanceof Error ? error.name : "Error", message },
       });
     } catch (persistenceError) {

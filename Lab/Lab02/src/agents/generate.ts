@@ -1,7 +1,13 @@
-import { Agent, tool, type ToolToFinalOutputFunction } from "@openai/agents";
+import {
+  Agent,
+  AgentsError,
+  tool,
+  type ToolToFinalOutputFunction,
+} from "@openai/agents";
 import { z } from "zod";
 
 import type { ArtifactKind } from "../generation/artifact.js";
+import { ArtifactExtractionError } from "../generation/artifact.js";
 import { AgentFileWorkspace } from "./file-workspace.js";
 import { CourseModelRuntime, snapshotUsage, type UsageSnapshot } from "./runtime.js";
 import { testAuthoringInstructions } from "./test-authoring-instructions.js";
@@ -22,6 +28,47 @@ export interface GenerationResult {
   readonly usage: UsageSnapshot;
   readonly rawResponses: readonly unknown[];
   readonly prompt?: { readonly instructions: string; readonly input: string };
+}
+
+/** Preserves billable inference evidence when artifact delivery fails afterwards. */
+export class GenerationArtifactError extends ArtifactExtractionError {
+  readonly usage: UsageSnapshot;
+  readonly rawOutput: string;
+  readonly rawResponses: readonly unknown[];
+  readonly prompt: { readonly instructions: string; readonly input: string };
+
+  constructor(
+    message: string,
+    evidence: Omit<GenerationResult, "content">,
+    options?: { readonly cause?: unknown },
+  ) {
+    super(message);
+    this.name = "GenerationArtifactError";
+    this.usage = evidence.usage;
+    this.rawOutput = evidence.rawOutput;
+    this.rawResponses = evidence.rawResponses;
+    this.prompt = evidence.prompt!;
+    if (options && "cause" in options) this.cause = options.cause;
+  }
+}
+
+export function generationArtifactErrorFromRunnerError(
+  error: unknown,
+  prompt: { readonly instructions: string; readonly input: string },
+): GenerationArtifactError | undefined {
+  if (!(error instanceof AgentsError) || error.state === undefined) {
+    return undefined;
+  }
+  return new GenerationArtifactError(
+    error instanceof Error ? error.message : String(error),
+    {
+      rawOutput: "",
+      usage: snapshotUsage(error.state.usage),
+      rawResponses: error.state._modelResponses,
+      prompt,
+    },
+    { cause: error },
+  );
 }
 
 export interface TestRepairInput extends GenerationInput {
@@ -118,19 +165,40 @@ async function runGeneration(
     toolUseBehavior: acceptedWriteToolUseBehavior,
     resetToolChoice: false,
   });
-  const result = await runtime.runner.run(
-    agent,
-    promptInput,
-    { maxTurns: 6, ...(input.signal === undefined ? {} : { signal: input.signal }) },
-  );
-  const content = await workspace.readWrittenFile();
-
-  return {
-    content,
+  let result;
+  try {
+    result = await runtime.runner.run(agent, promptInput, {
+      maxTurns: 6,
+      ...(input.signal === undefined ? {} : { signal: input.signal }),
+    });
+  } catch (error) {
+    throw (
+      generationArtifactErrorFromRunnerError(error, {
+        instructions,
+        input: promptInput,
+      }) ?? error
+    );
+  }
+  const evidence = {
     rawOutput: typeof result.finalOutput === "string" ? result.finalOutput : "",
     usage: snapshotUsage(result.state.usage),
     rawResponses: result.rawResponses,
     prompt: { instructions, input: promptInput },
+  };
+  let content: string;
+  try {
+    content = await workspace.readWrittenFile();
+  } catch (error) {
+    throw new GenerationArtifactError(
+      error instanceof Error ? error.message : String(error),
+      evidence,
+      { cause: error },
+    );
+  }
+
+  return {
+    content,
+    ...evidence,
   };
 }
 
@@ -156,6 +224,7 @@ export async function repairTrainTests(
     artifactKind: `${input.scenario}-tests`,
     allowedPath: input.artifactPath,
     writeLabel: "test-suite rewrite",
+    rejectUnchangedFrom: input.currentTests,
   });
   const writeFile = createWriteFileTool(
     workspace,
@@ -166,7 +235,9 @@ export async function repairTrainTests(
     input.referenceStatus === "TEST_ERROR"
       ? "Fix its syntax, loading, collection, forbidden-access, or execution-contract problem."
       : "Fix any test-suite defect that makes the suite disagree with the supplied behavior, including invalid fixtures, helper-generated data, request construction, state isolation, or assertions.",
-    "You have exactly one accepted write_file call in this repair round. Analyze the complete failure pattern and current suite before calling it. Do not write unchanged content, and do not call write_file until the final corrected suite is ready.",
+    "Treat every supplied reference failure as evidence about a defect in the tests. Change the failing locator, fixture, helper, state setup, or assertion directly; do not keep rerunning an assertion that the reference feedback has already disproved.",
+    "Analyze the complete failure pattern silently. Do not output diagnosis, plans, commentary, Markdown, or source as prose. Your only visible response must be exactly one write_file tool call containing the complete corrected suite.",
+    "You have exactly one accepted write_file call in this repair round. Do not write unchanged content, and do not call write_file until the final corrected suite is ready.",
     "You must finish the repair by calling write_file exactly once. Returning prose or source text without a write_file call is a failed repair.",
     ...(input.scenario === "gui"
       ? [
@@ -177,6 +248,13 @@ export async function repairTrainTests(
           "In field-policy tables, repeated success rows can pollute later rows through legitimate duplicate detection. Clear browser storage before each independent boundary row, or make both identifiers unique for every success. Keep persistence assertions in their separate scenarios.",
           "The username normalization rule trims whitespace but preserves spelling and case. Assert the trimmed submitted value itself; do not compare storage with a differently-cased seed variable.",
           "A label associated with an input may be a sibling through label[for], not an ancestor. For label-position failures, use the input element's labels collection and compare bounding rectangles; do not use an ancestor-label XPath.",
+          "Never keep or add a malformed native-date case. In particular, do not fill a date input with a non-existent date such as February 29 in a non-leap year. The supported date coverage is one real Gregorian date and one omitted date.",
+          "For password table failures, classify the field that actually owns the error. A confirmation mismatch must assert an error on confirmPassword, not password. Abcdefghi1 is a valid 10-character password; do not classify it as too short.",
+          "The password rule requires an ASCII letter and a digit, but does not require both uppercase and lowercase letters. A value such as alllowercase1 is valid; do not invent a mixed-case requirement.",
+          "To prove that a rejected attempt reserves nothing, submit otherwise-valid username and email identifiers with an invalid companion such as a short password or missing terms, then correct only that companion and reuse the same identifiers. Never expect an unchanged syntactically invalid username or email to become valid on a later attempt.",
+          "If expectFieldError reports an empty described message, the chosen field is probably not the field that failed. Correct the case expectation or field name rather than weakening expectFieldError.",
+          "Await every asynchronous supplied helper, including storageCorpus. Calling Object.keys or Object.values on the unresolved Promise is always a test defect.",
+          "Do not prefix or suffix a username value whose exact length is under test; that changes the boundary. Make companion emails unique instead, and keep every expected-success username within 20 characters.",
         ]
       : []),
     "When many expected-success cases receive the same rejection status, inspect shared fixtures, generators, request helpers, and default payloads before changing individual assertions.",
@@ -204,18 +282,39 @@ export async function repairTrainTests(
     toolUseBehavior: acceptedWriteToolUseBehavior,
     resetToolChoice: false,
   });
-  const result = await runtime.runner.run(
-    agent,
-    promptInput,
-    { maxTurns: 6, ...(input.signal === undefined ? {} : { signal: input.signal }) },
-  );
-  const content = await workspace.readWrittenFile();
-
-  return {
-    content,
+  let result;
+  try {
+    result = await runtime.runner.run(agent, promptInput, {
+      maxTurns: 6,
+      ...(input.signal === undefined ? {} : { signal: input.signal }),
+    });
+  } catch (error) {
+    throw (
+      generationArtifactErrorFromRunnerError(error, {
+        instructions,
+        input: promptInput,
+      }) ?? error
+    );
+  }
+  const evidence = {
     rawOutput: typeof result.finalOutput === "string" ? result.finalOutput : "",
     usage: snapshotUsage(result.state.usage),
     rawResponses: result.rawResponses,
     prompt: { instructions, input: promptInput },
+  };
+  let content: string;
+  try {
+    content = await workspace.readWrittenFile();
+  } catch (error) {
+    throw new GenerationArtifactError(
+      error instanceof Error ? error.message : String(error),
+      evidence,
+      { cause: error },
+    );
+  }
+
+  return {
+    content,
+    ...evidence,
   };
 }

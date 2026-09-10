@@ -5,12 +5,14 @@ import { Writable } from "node:stream";
 
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { APIConnectionTimeoutError } from "openai";
+import { MaxTurnsExceededError } from "@openai/agents";
 
 import { AgentFileWorkspace } from "../../src/agents/file-workspace.js";
 import {
   acceptedWriteToolUseBehavior,
   generateDirectImplementation,
   generateTrainTests,
+  generationArtifactErrorFromRunnerError,
   repairTrainTests,
 } from "../../src/agents/generate.js";
 import { RepairWorkspace, runTddRepair } from "../../src/agents/repair.js";
@@ -71,6 +73,7 @@ describe("model configuration", () => {
         900_000,
       );
       expect(runtime.modelSettingsFor("test-generation").maxTokens).toBe(8_192);
+      expect(runtime.modelSettingsFor("test-repair").maxTokens).toBe(12_000);
       expect(runtime.modelSettingsFor("direct").maxTokens).toBe(12_000);
       expect(runtime.modelSettings.retry?.maxRetries).toBe(1);
       expect(runtime.executionPolicy.scenarioDeadlineMs).toEqual({
@@ -561,9 +564,9 @@ describe("test authoring instructions", () => {
     expect(api).toContain(
       "include the received response body as a safe assertion message",
     );
-    expect(gui).toContain("375-pixel viewport");
-    expect(gui).toContain("error summary");
-    expect(gui).toContain("documented Playwright Test matchers");
+    expect(gui).toContain("Match the heading with /register|create.*account|sign up/i");
+    expect(gui).toContain("alert summary");
+    expect(gui).toContain("documented Playwright matchers");
   });
 
   it("prints only the caller-supplied safe prompt preview", () => {
@@ -586,6 +589,80 @@ describe("test authoring instructions", () => {
     expect(terminalOutput).toContain("/tmp/train-tests-prompt.json");
     expect(terminalOutput).not.toContain("3 to 20 characters");
     expect(terminalOutput).not.toContain("Username policy");
+  });
+
+  it("prints per-stage metrics and a machine-readable model total", () => {
+    let terminalOutput = "";
+    const output = new Writable({
+      write(chunk, _encoding, callback) {
+        terminalOutput += chunk.toString();
+        callback();
+      },
+    });
+    const presenter = new TerminalPresenter({ interactive: false, output });
+
+    presenter.modelCall({
+      stage: "direct",
+      durationMs: 1_234,
+      usage: {
+        requests: 1,
+        inputTokens: 100,
+        outputTokens: 200,
+        totalTokens: 300,
+        requestUsage: [],
+      },
+    });
+    presenter.modelSummary({
+      model: "example-model",
+      stages: 1,
+      durationMs: 1_234,
+      requests: 1,
+      inputTokens: 100,
+      outputTokens: 200,
+      totalTokens: 300,
+      calls: [
+        {
+          stage: "direct",
+          durationMs: 1_234,
+          usage: {
+            requests: 1,
+            inputTokens: 100,
+            outputTokens: 200,
+            totalTokens: 300,
+            requestUsage: [],
+          },
+        },
+      ],
+    });
+
+    expect(terminalOutput).toContain("[model] direct · 1.2s");
+    expect(terminalOutput).toContain("input 100 · output 200 · total 300 tokens");
+    const summaryLine = terminalOutput
+      .split("\n")
+      .find((line) => line.startsWith("MODEL_RUN_SUMMARY "));
+    expect(summaryLine).toBeTruthy();
+    expect(JSON.parse(summaryLine!.slice("MODEL_RUN_SUMMARY ".length))).toEqual({
+      model: "example-model",
+      stages: 1,
+      durationMs: 1_234,
+      requests: 1,
+      inputTokens: 100,
+      outputTokens: 200,
+      totalTokens: 300,
+      calls: [
+        {
+          stage: "direct",
+          durationMs: 1_234,
+          usage: {
+            requests: 1,
+            inputTokens: 100,
+            outputTokens: 200,
+            totalTokens: 300,
+            requestUsage: [],
+          },
+        },
+      ],
+    });
   });
 });
 
@@ -656,6 +733,61 @@ describe("repair workspace", () => {
 });
 
 describe("agent file workspace", () => {
+  it("preserves usage and responses from a state-bearing runner failure", () => {
+    const runnerError = new MaxTurnsExceededError("Max turns (6) exceeded", {
+      usage: {
+        requests: 2,
+        inputTokens: 120,
+        outputTokens: 30,
+        totalTokens: 150,
+        requestUsage: [],
+      },
+      _modelResponses: [{ id: "failed-response" }],
+    } as never);
+
+    const converted = generationArtifactErrorFromRunnerError(runnerError, {
+      instructions: "repair the tests",
+      input: "current suite and feedback",
+    });
+
+    expect(converted).toMatchObject({
+      message: "Max turns (6) exceeded",
+      usage: { requests: 2, totalTokens: 150 },
+      rawResponses: [{ id: "failed-response" }],
+      prompt: {
+        instructions: "repair the tests",
+        input: "current suite and feedback",
+      },
+      cause: runnerError,
+    });
+  });
+
+  it("rejects an unchanged repair without consuming its write", async () => {
+    const directory = await temporaryDirectory();
+    const allowedPath = join(directory, "register.spec.ts");
+    const current =
+      'import { test } from "@playwright/test";\ntest("current", async () => {});\n';
+    const workspace = new AgentFileWorkspace({
+      artifactKind: "gui-tests",
+      allowedPath,
+      writeLabel: "test-suite rewrite",
+      rejectUnchangedFrom: current,
+    });
+
+    await expect(workspace.writeFile(allowedPath, current)).resolves.toMatchObject({
+      accepted: false,
+      message: expect.stringContaining("unchanged"),
+    });
+    expect(workspace.writes).toBe(0);
+
+    const corrected =
+      'import { test } from "@playwright/test";\ntest("corrected", async () => {});\n';
+    await expect(
+      workspace.writeFile(allowedPath, corrected),
+    ).resolves.toMatchObject({ accepted: true });
+    expect(workspace.writes).toBe(1);
+  });
+
   it("writes the authorized artifact and rejects every other path", async () => {
     const directory = await temporaryDirectory();
     const allowedPath = join(directory, "register.ts");

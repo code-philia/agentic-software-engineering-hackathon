@@ -32,12 +32,32 @@ export interface ArtifactView {
   readonly detail?: string;
 }
 
+export interface ModelCallView {
+  readonly stage: string;
+  readonly durationMs: number;
+  readonly usage: UsageSnapshot;
+  readonly status?: "completed" | "failed";
+}
+
+export interface ModelRunSummary {
+  readonly model: string;
+  readonly stages: number;
+  readonly durationMs: number;
+  readonly requests: number;
+  readonly inputTokens: number;
+  readonly outputTokens: number;
+  readonly totalTokens: number;
+  readonly calls: readonly ModelCallView[];
+}
+
 export interface CoursePresenter {
   start(scenario: CourseScenario, runId: string): void;
   act(step: number, title: string, description?: string): void;
   task(publicBrief: string): void;
   stage<T>(message: string, action: () => Promise<T>): Promise<T>;
   artifact(view: ArtifactView): void;
+  modelCall?(view: ModelCallView): void;
+  modelSummary?(summary: ModelRunSummary): void;
   preview?(label: "Standard" | "Direct" | "TDD", url: string): void;
   prompt(label: string, preview: string, path: string): void;
   trainResult(label: string, result: TrainTestResult): void;
@@ -68,6 +88,10 @@ export interface TerminalPresenterOptions {
 function usageLine(usage?: UsageSnapshot): string {
   if (!usage) return "";
   return ` · ${usage.requests} request(s) · ${usage.totalTokens.toLocaleString("en-US")} tokens`;
+}
+
+function seconds(durationMs: number): string {
+  return `${(durationMs / 1_000).toFixed(1)}s`;
 }
 
 export class TerminalPresenter implements CoursePresenter {
@@ -165,6 +189,31 @@ export class TerminalPresenter implements CoursePresenter {
       this.#line(`File: ${view.path}`);
       this.#line(preview);
     }
+  }
+
+  modelCall(view: ModelCallView): void {
+    if (this.#rehearsal) return;
+    const message =
+      `${view.stage}${view.status === "failed" ? " · failed" : ""} · ${seconds(view.durationMs)} · ` +
+      `${view.usage.requests} request(s) · ` +
+      `input ${view.usage.inputTokens.toLocaleString("en-US")} · ` +
+      `output ${view.usage.outputTokens.toLocaleString("en-US")} · ` +
+      `total ${view.usage.totalTokens.toLocaleString("en-US")} tokens`;
+    if (this.#rich) log.info(message);
+    else this.#line(`[model] ${message}`);
+  }
+
+  modelSummary(summary: ModelRunSummary): void {
+    if (this.#rehearsal) return;
+    const message =
+      `${summary.model} · ${summary.stages} stage(s) · ` +
+      `${seconds(summary.durationMs)} · ${summary.requests} request(s) · ` +
+      `input ${summary.inputTokens.toLocaleString("en-US")} · ` +
+      `output ${summary.outputTokens.toLocaleString("en-US")} · ` +
+      `total ${summary.totalTokens.toLocaleString("en-US")} tokens`;
+    if (this.#rich) log.info(`Model total · ${message}`);
+    else this.#line(`[model-total] ${message}`);
+    this.#line(`MODEL_RUN_SUMMARY ${JSON.stringify(summary)}`);
   }
 
   preview(label: "Standard" | "Direct" | "TDD", url: string): void {
