@@ -13,6 +13,7 @@ Email policy:
 - Ignore surrounding whitespace and normalize successful output to lowercase.
 - Require one local part, one at-sign, and a multi-label domain.
 - Reject whitespace, missing components, repeated dots, dot-bounded local parts, and empty or hyphen-bounded domain labels.
+- Do not invent a minimum length for a non-empty domain label or final domain label. A one-letter alphabetic final label is valid within this exercise when every other email rule is satisfied.
 - Do not exercise disputed quoted-local-part, SMTPUTF8, DNS, or MX behavior.
 - Duplicate comparison uses the normalized email address.
 
@@ -79,7 +80,7 @@ Reliability rules:
 - An alert summary may report only the number of problems. Do not require it to list field names or exact messages; verify field-specific feedback through each control's accessible description or aria-describedby targets.
 - To verify focus after invalid submission, use await expectFirstInvalid(page). Never compare two Locator objects with toBe or toEqual.
 - Native date controls reject malformed values before application code sees them. Never put an invalid date in fillRegistration, including February 29 in a non-leap year. Test exactly the supported date behaviors: a real Gregorian date and an omitted date. Do not mutate input types or prototype setters to manufacture an impossible date.
-- Keep presentation checks qualitative and implementation-independent. Locate public elements through semantic roles and the supplied controls, inspect computed styles or bounding boxes only when needed, and do not assert exact RGB values, fixed pixel dimensions, shadows, CSS classes, or DOM nesting.
+- Keep presentation checks qualitative and implementation-independent. Locate public elements through semantic roles and the supplied controls, inspect computed styles or bounding boxes only when needed, and do not assert exact RGB values, fixed pixel dimensions, shadows, CSS classes, or DOM nesting. A registration form may be transparent inside the requested white panel, so inspect its visible semantic ancestors rather than requiring the form element itself to have a white background. For broad color classification, parse computed color channels and compare their relationships; do not match serialized RGB text with a handcrafted regular expression.
 - Use only documented Playwright matchers, make every test assert meaningful behavior, and write the complete suite in one write_file call.`;
 
 export function testAuthoringInstructions(scenario: CourseScenario): string {

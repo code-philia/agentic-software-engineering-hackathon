@@ -26,6 +26,6 @@ Design the complete suite to finish comfortably within 60 seconds on a local pag
 
 Do not pass malformed or non-existent dates to `fillRegistration`; a native date input rejects them before application code can observe them. Date coverage consists of one real date and omission only.
 
-Do not assert an exact number of inputs, controls, containers, or other DOM nodes unless the task explicitly requires that number. For presentation checks, assert only the documented property; do not invent exact RGB values, pixel dimensions, shadows, DOM containers, or wording.
+Do not assert an exact number of inputs, controls, containers, or other DOM nodes unless the task explicitly requires that number. For presentation checks, assert only the documented property; do not invent exact RGB values, pixel dimensions, shadows, DOM containers, or wording. The form may be transparent inside a visible white registration panel. Classify broad colors by parsing and comparing computed numeric channels, not by matching the browser's serialized RGB string with a handcrafted regular expression.
 
 Write the complete TypeScript test source to the authorized `register.spec.ts` path with the provided `write_file` tool. Pass source code only as `content`; do not wrap it in Markdown fences or add commentary.

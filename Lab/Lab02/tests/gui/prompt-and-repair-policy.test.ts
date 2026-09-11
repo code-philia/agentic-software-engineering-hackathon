@@ -62,6 +62,9 @@ describe("GUI prompt and repair tuning", () => {
     expect(instructions).toContain("it has no password property");
     expect(instructions).toContain("Never pass an optional or undefined value to toContain");
     expect(instructions).toContain("define const c = controls(page) in that same scope");
+    expect(instructions).toContain("one-letter alphabetic final label is valid");
+    expect(instructions).toContain("form may be transparent inside the requested white panel");
+    expect(instructions).toContain("do not match serialized RGB text");
   });
 
   it("forbids the optional native-date false rejection pattern", () => {
