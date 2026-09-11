@@ -119,6 +119,50 @@ export const acceptedWriteToolUseBehavior: ToolToFinalOutputFunction = (
   };
 };
 
+function isMalformedToolArgumentsError(error: unknown): boolean {
+  const visited = new Set<unknown>();
+  let current: unknown = error;
+
+  while (current !== undefined && current !== null && !visited.has(current)) {
+    visited.add(current);
+    if (current instanceof SyntaxError) {
+      const message = current.message.toLowerCase();
+      if (
+        message.includes("not valid json") ||
+        message.includes("json parse") ||
+        message.includes(" in json") ||
+        /unexpected (?:token|character).*json/.test(message)
+      ) {
+        return true;
+      }
+    }
+    current =
+      typeof current === "object" && "cause" in current
+        ? current.cause
+        : undefined;
+  }
+
+  return false;
+}
+
+async function runWithMalformedToolArgumentsRewrite<T>(
+  promptInput: string,
+  run: (input: string) => Promise<T>,
+): Promise<T> {
+  try {
+    return await run(promptInput);
+  } catch (error) {
+    if (!isMalformedToolArgumentsError(error)) throw error;
+    return run(
+      [
+        promptInput,
+        "Your previous response could not be executed because the write_file tool arguments were malformed and were not valid JSON.",
+        "Retry the task from scratch now. Call write_file exactly once with arguments matching its schema, put the complete artifact in the content field, and return no prose.",
+      ].join("\n\n"),
+    );
+  }
+}
+
 async function runGeneration(
   runtime: CourseModelRuntime,
   input: GenerationInput,
@@ -167,10 +211,14 @@ async function runGeneration(
   });
   let result;
   try {
-    result = await runtime.runner.run(agent, promptInput, {
-      maxTurns: 6,
-      ...(input.signal === undefined ? {} : { signal: input.signal }),
-    });
+    result = await runWithMalformedToolArgumentsRewrite(
+      promptInput,
+      (attemptInput) =>
+        runtime.runner.run(agent, attemptInput, {
+          maxTurns: 6,
+          ...(input.signal === undefined ? {} : { signal: input.signal }),
+        }),
+    );
   } catch (error) {
     throw (
       generationArtifactErrorFromRunnerError(error, {
@@ -289,10 +337,14 @@ export async function repairTrainTests(
   });
   let result;
   try {
-    result = await runtime.runner.run(agent, promptInput, {
-      maxTurns: 6,
-      ...(input.signal === undefined ? {} : { signal: input.signal }),
-    });
+    result = await runWithMalformedToolArgumentsRewrite(
+      promptInput,
+      (attemptInput) =>
+        runtime.runner.run(agent, attemptInput, {
+          maxTurns: 6,
+          ...(input.signal === undefined ? {} : { signal: input.signal }),
+        }),
+    );
   } catch (error) {
     throw (
       generationArtifactErrorFromRunnerError(error, {

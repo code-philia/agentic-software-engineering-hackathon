@@ -177,6 +177,44 @@ describe("model configuration", () => {
     }
   });
 
+  it("requests one clean rewrite after malformed write_file JSON", async () => {
+    const runtime = new CourseModelRuntime({
+      envFile: "/unused/model.env",
+      baseUrl: "https://provider.example/v1",
+      apiKey: "secret-for-test",
+      model: "deepseek-v4-pro-0813",
+    });
+    const directory = await temporaryDirectory();
+    const stopped = new Error("stop after rewrite request");
+    const run = vi
+      .spyOn(runtime.runner, "run")
+      .mockRejectedValueOnce(
+        new SyntaxError(
+          "Unexpected number in JSON at position 2 (line 1 column 3)",
+        ),
+      )
+      .mockRejectedValueOnce(stopped);
+
+    try {
+      await expect(
+        generateTrainTests(runtime, {
+          scenario: "gui",
+          publicBrief: "Register a user.",
+          executionContract: "Write a Playwright suite.",
+          artifactPath: join(directory, "register.spec.ts"),
+        }),
+      ).rejects.toBe(stopped);
+
+      expect(run).toHaveBeenCalledTimes(2);
+      expect(run.mock.calls[1]?.[1]).toContain(
+        "write_file tool arguments were malformed",
+      );
+      expect(run.mock.calls[1]?.[1]).toContain("Retry the task from scratch");
+    } finally {
+      await runtime.close();
+    }
+  });
+
   it("retries only truncation-shaped proxy 400s despite generic provider vetoes", async () => {
     const runtime = new CourseModelRuntime({
       envFile: "/unused/model.env",
