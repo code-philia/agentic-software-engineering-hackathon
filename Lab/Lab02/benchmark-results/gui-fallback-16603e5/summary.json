@@ -1,0 +1,38 @@
+{
+  "commit": "16603e5",
+  "runs": [
+    {
+      "runId": "20260911T004515Z-gui-b38362a2",
+      "model": "qwen3.6-plus",
+      "outcome": "GENERATION_ERROR",
+      "referenceTrainBeforeTerminalRepair": "5/7",
+      "completedTestRepairs": 2,
+      "implementationRepairs": 0,
+      "directValidation": "9/36",
+      "tddValidation": null,
+      "modelDurationMs": 622836,
+      "requests": 10,
+      "inputTokens": 129198,
+      "outputTokens": 35671,
+      "totalTokens": 164869,
+      "error": "Max turns (6) exceeded"
+    },
+    {
+      "runId": "20260911T004517Z-gui-a48f967b",
+      "model": "deepseek-v4-flash",
+      "outcome": "GREEN",
+      "referenceTrain": "12/12",
+      "initialTrain": "3/12",
+      "finalTrain": "12/12",
+      "testRepairs": 0,
+      "implementationRepairs": 3,
+      "directValidation": "9/36",
+      "tddValidation": "36/36",
+      "modelDurationMs": 766680,
+      "requests": 5,
+      "inputTokens": 43942,
+      "outputTokens": 91322,
+      "totalTokens": 135264
+    }
+  ]
+}
