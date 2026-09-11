@@ -85,7 +85,17 @@ npm install
 
 第一次安装需要一些时间。命令执行结束、终端重新出现输入提示符，并且没有红色错误信息，即表示安装完成。普通的 warning 提示通常不影响实验。
 
-### 第五步：配置模型接口
+### 第五步：安装 Playwright 浏览器
+
+GUI 实验使用 Playwright 在真实浏览器中运行训练测试和教师验证。完成 `npm install` 后，在同一个 VS Code 终端中执行：
+
+```bash
+npm run setup:browsers
+```
+
+这个命令会下载与本实验版本匹配的 Chromium。第一次安装需要一些时间；看到命令正常结束并重新出现输入提示符，即表示安装完成。以后再次运行 `npm install` 通常不需要重复执行，除非 Playwright 提示缺少浏览器或课程依赖版本发生变化。
+
+### 第六步：配置模型接口
 
 在 VS Code 左侧文件列表中找到 `.env.example`：
 
@@ -106,7 +116,7 @@ model=deepseek-v4-flash
 
 保存文件时可以按 macOS 的 `Command+S` 或 Windows 的 `Ctrl+S`。不要分享 API 密钥，也不要把包含真实密钥的 `.env` 提交到 Git。
 
-### 第六步：运行课前检查
+### 第七步：运行课前检查
 
 在 VS Code 终端中执行：
 
@@ -116,10 +126,11 @@ npm run doctor
 
 看到 `[ok]` 表示模型接口已经可以用于实验。如果出现错误，请在上课前把终端中的完整错误信息发给老师。
 
-完成以下三项即表示课前准备完成：
+完成以下四项即表示课前准备完成：
 
 - `node -v` 显示 `v24.x.x`；
 - `npm -v` 显示 `11.x.x` 或更高版本；
+- `npm run setup:browsers` 已成功安装 Chromium；
 - `npm run doctor` 显示 `[ok]`。
 
 ## 二、上课流程
@@ -136,7 +147,7 @@ npm run doctor
 
 Direct 和 TDD 使用相同的任务、相同的模型和相同的初始代码，区别仅在于 TDD 分支拥有测试反馈闭环。
 
-### 2. 运行实验
+### 2. 运行 Registration API 实验
 
 在 VS Code 终端中执行：
 
@@ -144,28 +155,49 @@ Direct 和 TDD 使用相同的任务、相同的模型和相同的初始代码�
 npm run demo:api
 ```
 
-GUI 场景执行：
+按照终端提示依次观察：
+
+1. **Act 0 — Review the task**：阅读注册 API 的任务要求和实验结构。
+2. **Act 1 — Generate the Direct implementation**：模型生成 `register.ts`，程序同时复制一份作为 TDD 的起点。
+3. **Act 2 — Check the Direct result**：使用教师验证检查未经修复的 Direct 实现，记录各类别的通过情况。
+4. **Act 3 — Generate train tests**：模型生成 Vitest 可执行测试；测试会先在教师参考实现上检查，只有完整通过后才会冻结并用于 TDD。
+5. **Act 4 — Establish Red and repair toward Green**：在 TDD 副本上运行训练测试，先观察 Red，再让模型根据测试反馈修复，直到 Green 或达到修复上限。
+6. **Act 5 — Compare Direct and TDD**：再次运行教师验证，并比较 Direct 与 TDD 的最终结果、耗时和模型调用情况。
+
+### 3. 运行 Registration GUI 实验
+
+确认已经执行过 `npm run setup:browsers`，然后在 VS Code 终端中执行：
 
 ```bash
 npm run demo:gui
 ```
 
-GUI 运行会依次打开教师标准页面、Direct 页面和最终 TDD 页面。可以在浏览器中填写、提交和调整窗口宽度，再回到终端按 Enter 继续。若用于无人值守的模型评测，可以关闭暂停与自动打开浏览器：
+GUI 流程会在需要观察页面时自动打开浏览器。请保留终端窗口，在浏览器和终端之间切换：可以填写并提交注册表单、测试错误提示和密码显示按钮，也可以缩窄窗口观察响应式布局；观察完页面后回到终端，按 Enter 进入下一步。
+
+按照终端提示依次观察：
+
+1. **Act 0 — Review the task**：阅读注册网页要求，并查看教师提供的参考页面。参考页面只帮助理解任务，不会提供给模型。
+2. **Act 1 — Generate the Direct implementation**：模型直接生成单文件 `index.html`，程序复制同一份页面作为 TDD 的起点。
+3. **Act 2 — Check the Direct result**：教师 Playwright validation 检查 Direct 页面。浏览器会打开该页面，可以亲自操作并对照终端中的分类得分。
+4. **Act 3 — Generate train tests**：模型生成 Playwright train suite。程序先在教师参考实现上运行；若测试失败，会把失败上下文交给模型修复，只有整套测试在参考实现上 GREEN 后才会冻结。
+5. **Act 4 — Establish Red and repair toward Green**：冻结的测试在 Direct 副本上建立 Red，模型根据可见的测试失败逐轮修改 TDD 页面，直到 train suite Green 或达到修复上限。
+6. **Act 5 — Compare Direct and TDD**：教师 validation 独立评价最终 TDD 页面。浏览器会打开修复后的页面，终端同时比较 Direct/TDD 得分，并汇总每次模型调用的耗时和 tokens。
+
+如果浏览器没有自动打开，可以从终端输出中复制页面地址到浏览器。若终端报告缺少 Chromium，请重新执行：
+
+```bash
+npm run setup:browsers
+```
+
+用于无人值守的批量模型评测时，可以关闭每个 Act 的暂停和自动打开浏览器：
 
 ```bash
 npm run demo:gui -- --no-interactive --no-open --model deepseek-v4-flash
 ```
 
-按照终端提示依次观察：
-
-1. **Act 0 — Review the task**：阅读注册任务要求和实验结构；GUI 场景还可以先查看标准页面。
-2. **Act 1 — Generate the Direct implementation**：模型生成 `register.ts` 或 `index.html`，程序同时复制一份作为 TDD 的起点。
-3. **Act 2 — Check the Direct result**：使用教师验证检查未经修复的 Direct 实现，记录各类别的通过情况。
-4. **Act 3 — Generate train tests**：模型生成 Vitest 或 Playwright 可执行测试；测试会先在教师参考实现上检查，只有完整通过后才会冻结并用于 TDD。
-5. **Act 4 — Establish Red and repair toward Green**：在 TDD 副本上运行训练测试，先观察 Red，再让模型根据测试反馈修复，直到 Green 或达到修复上限。
-6. **Act 5 — Compare Direct and TDD**：再次运行教师验证，并比较 Direct 与 TDD 的最终结果、耗时和模型调用情况。
-
 每个模型阶段结束后，终端会显示该阶段的耗时、请求数以及 input、output、total tokens。整次运行最后还会输出一行 `MODEL_RUN_SUMMARY` JSON；自动化脚本可以直接解析这一行，完整数据也会保存在该次运行的 `result.json` 中。
+
+### 4. 汇总多次 GUI 运行
 
 批量运行后可直接汇总 GUI 结果：
 
@@ -177,7 +209,7 @@ npm run summarize:runs -- --after 20260910T162353Z
 
 表中的成功定义为：参考实现上的 train suite 全绿、TDD 最终 train suite 全绿、流程结果为 `GREEN`，并且 TDD 的隐藏 validation 通过数高于 Direct。失败运行计入 Attempts 和成功率分母；tokens、模型用时、Direct/TDD validation 及提升值的平均数只使用成功运行，便于直接放入课堂对比表。
 
-### 3. 比较与讨论
+### 5. 比较与讨论
 
 结合 Act 5 的结果进行讨论：
 
