@@ -256,6 +256,8 @@ export async function repairTrainTests(
           "In a persistence or duplicate scenario, resetRegistration/localStorage.clear is allowed only before creating the prerequisite account. After creation succeeds, preserve storage through page.reload or openRegistration until both username and email duplicate assertions finish.",
           "If expectFieldError reports an empty described message, the chosen field is probably not the field that failed. Correct the case expectation or field name rather than weakening expectFieldError.",
           "Await every asynchronous supplied helper, including storageCorpus. Calling Object.keys or Object.values on the unresolved Promise is always a test defect.",
+          "uniqueRegistration() returns only username and email, never a password. If a storage assertion receives undefined from credentials.password or another missing property, replace it with an explicit valid password constant that the test passes to fillRegistration, then assert that exact string is absent.",
+          "Each Playwright test has its own lexical scope. If feedback reports that c or another locator variable is undefined, define const c = controls(page) inside that failing test or move the shared operation into a properly parameterized helper.",
           "Do not prefix or suffix a username value whose exact length is under test; that changes the boundary. Make companion emails unique instead, and keep every expected-success username within 20 characters.",
         ]
       : []),

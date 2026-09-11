@@ -59,6 +59,9 @@ describe("GUI prompt and repair tuning", () => {
     expect(instructions).toContain("full-width dark navy-blue service header");
     expect(instructions).toContain("related fields sharing rows");
     expect(instructions).toContain("do not assert exact RGB values");
+    expect(instructions).toContain("it has no password property");
+    expect(instructions).toContain("Never pass an optional or undefined value to toContain");
+    expect(instructions).toContain("define const c = controls(page) in that same scope");
   });
 
   it("forbids the optional native-date false rejection pattern", () => {
