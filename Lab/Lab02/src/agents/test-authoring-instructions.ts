@@ -56,6 +56,7 @@ Prioritize these behavior families:
 - Field policy: exercise representative username, email, password, confirmation, terms, and optional-date boundaries. Group related examples in tables rather than separate top-level tests.
 - Interaction: one accessible Show/Hide password action toggles both password inputs and updates its accessible name.
 - Persistence: a successful padded mixed-case username is stored with surrounding whitespace removed, its email is lowercased, duplicate username and email checks survive reload, rejected attempts reserve nothing, and stored data contains neither password values nor password-named properties.
+- Presentation and responsive layout: cover the public visual direction in one compact scenario without screenshots or pixel comparison. Check broad browser-observable properties rather than exact styling: a semantic full-width dark navy-blue service header, a pale blue-gray page surrounding a centered white registration panel, a restrained orange accent on the primary submit action, related fields sharing rows on a typical desktop viewport, a single-column form without horizontal overflow on a narrow mobile viewport, and a clearly visible keyboard focus indicator.
 
 Reliability rules:
 - Keep the suite comfortably within the 60-second one-worker budget. Aim for roughly 220 source lines or fewer and preferably below 12,000 source characters, but prioritize a correct executable suite over an arbitrary test or line count. Use small shared helpers and omit comments, decorative copy, and duplicate assertions.
@@ -76,6 +77,7 @@ Reliability rules:
 - An alert summary may report only the number of problems. Do not require it to list field names or exact messages; verify field-specific feedback through each control's accessible description or aria-describedby targets.
 - To verify focus after invalid submission, use await expectFirstInvalid(page). Never compare two Locator objects with toBe or toEqual.
 - Native date controls reject malformed values before application code sees them. Never put an invalid date in fillRegistration, including February 29 in a non-leap year. Test exactly the supported date behaviors: a real Gregorian date and an omitted date. Do not mutate input types or prototype setters to manufacture an impossible date.
+- Keep presentation checks qualitative and implementation-independent. Locate public elements through semantic roles and the supplied controls, inspect computed styles or bounding boxes only when needed, and do not assert exact RGB values, fixed pixel dimensions, shadows, CSS classes, or DOM nesting.
 - Use only documented Playwright matchers, make every test assert meaningful behavior, and write the complete suite in one write_file call.`;
 
 export function testAuthoringInstructions(scenario: CourseScenario): string {

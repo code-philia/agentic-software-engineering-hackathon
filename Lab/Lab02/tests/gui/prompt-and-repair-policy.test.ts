@@ -55,6 +55,10 @@ describe("GUI prompt and repair tuning", () => {
     expect(instructions).toContain("expectFirstInvalid, expectRejection");
     expect(instructions).toContain("create.*account");
     expect(instructions).toContain("set confirmation to that same value");
+    expect(instructions).toContain("Presentation and responsive layout");
+    expect(instructions).toContain("full-width dark navy-blue service header");
+    expect(instructions).toContain("related fields sharing rows");
+    expect(instructions).toContain("do not assert exact RGB values");
   });
 
   it("forbids the optional native-date false rejection pattern", () => {

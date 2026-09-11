@@ -177,8 +177,13 @@ Registration task:
    registrations across page reloads without saving passwords.
 
    Let users reveal the password values while typing and hide them again. Use a
-   trustworthy public-service visual style that is clear, keyboard accessible,
-   responsive, and comfortable on desktop and mobile screens."）
+   trustworthy public-service visual style: a full-width dark navy-blue service
+   header with a restrained orange accent, a pale blue-gray page background, and
+   a centered white registration panel with an orange primary submit action. On
+   typical desktop screens, place related fields in two columns where space
+   permits; collapse them to one column on narrow mobile screens without
+   horizontal scrolling. Keep the page clear, keyboard accessible, responsive,
+   and comfortable to use."）
 ```
 
 ---
@@ -256,8 +261,13 @@ Registration task:
    registrations across page reloads without saving passwords.
 
    Let users reveal the password values while typing and hide them again. Use a
-   trustworthy public-service visual style that is clear, keyboard accessible,
-   responsive, and comfortable on desktop and mobile screens."）
+   trustworthy public-service visual style: a full-width dark navy-blue service
+   header with a restrained orange accent, a pale blue-gray page background, and
+   a centered white registration panel with an orange primary submit action. On
+   typical desktop screens, place related fields in two columns where space
+   permits; collapse them to one column on narrow mobile screens without
+   horizontal scrolling. Keep the page clear, keyboard accessible, responsive,
+   and comfortable to use."）
 ```
 
 ---
