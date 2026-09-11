@@ -5,12 +5,15 @@ import { Writable } from "node:stream";
 
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { APIConnectionTimeoutError } from "openai";
+import { MaxTurnsExceededError, ModelBehaviorError } from "@openai/agents";
 
 import { AgentFileWorkspace } from "../../src/agents/file-workspace.js";
 import {
   acceptedWriteToolUseBehavior,
   generateDirectImplementation,
   generateTrainTests,
+  GenerationArtifactError,
+  generationArtifactErrorFromRunnerError,
   repairTrainTests,
 } from "../../src/agents/generate.js";
 import { RepairWorkspace, runTddRepair } from "../../src/agents/repair.js";
@@ -51,7 +54,7 @@ async function temporaryDirectory(): Promise<string> {
 }
 
 describe("model configuration", () => {
-  it("uses deterministic sampling for every model stage", async () => {
+  it("uses expanded output budgets for every generated artifact stage", async () => {
     const runtime = new CourseModelRuntime({
       envFile: "/unused/model.env",
       baseUrl: "https://provider.example/v1",
@@ -60,7 +63,7 @@ describe("model configuration", () => {
     });
 
     try {
-      expect(runtime.modelSettings.temperature).toBe(0);
+      expect(runtime.modelSettings.temperature).toBe(0.2);
       expect(runtime.modelSettingsFor("doctor").timeoutMs).toBe(180_000);
       expect(runtime.modelSettingsFor("direct").timeoutMs).toBe(300_000);
       expect(runtime.modelSettingsFor("test-generation").timeoutMs).toBe(
@@ -70,8 +73,14 @@ describe("model configuration", () => {
       expect(runtime.modelSettingsFor("implementation-repair").timeoutMs).toBe(
         900_000,
       );
-      expect(runtime.modelSettingsFor("test-generation").maxTokens).toBe(8_192);
-      expect(runtime.modelSettingsFor("direct").maxTokens).toBe(12_000);
+      expect(runtime.modelSettingsFor("direct").maxTokens).toBe(16_384);
+      expect(runtime.modelSettingsFor("test-generation").maxTokens).toBe(
+        16_384,
+      );
+      expect(runtime.modelSettingsFor("test-repair").maxTokens).toBe(16_384);
+      expect(runtime.modelSettingsFor("implementation-repair").maxTokens).toBe(
+        16_384,
+      );
       expect(runtime.modelSettings.retry?.maxRetries).toBe(1);
       expect(runtime.executionPolicy.scenarioDeadlineMs).toEqual({
         api: 2_700_000,
@@ -155,8 +164,52 @@ describe("model configuration", () => {
             output: "failed",
           }),
         }),
-      ).rejects.toBe(stopped);
+      ).rejects.toMatchObject({
+        name: "GenerationArtifactError",
+        message: stopped.message,
+        cause: stopped,
+        usage: { requests: 0, totalTokens: 0 },
+        prompt: { input: expect.stringContaining("Current train-test result") },
+      });
       expect(run.mock.calls.at(-1)?.[0].modelSettings.timeoutMs).toBe(900_000);
+    } finally {
+      await runtime.close();
+    }
+  });
+
+  it("requests one clean rewrite after malformed write_file JSON", async () => {
+    const runtime = new CourseModelRuntime({
+      envFile: "/unused/model.env",
+      baseUrl: "https://provider.example/v1",
+      apiKey: "secret-for-test",
+      model: "deepseek-v4-pro-0813",
+    });
+    const directory = await temporaryDirectory();
+    const stopped = new Error("stop after rewrite request");
+    const run = vi
+      .spyOn(runtime.runner, "run")
+      .mockRejectedValueOnce(
+        new SyntaxError(
+          "Unexpected number in JSON at position 2 (line 1 column 3)",
+        ),
+      )
+      .mockRejectedValueOnce(stopped);
+
+    try {
+      await expect(
+        generateTrainTests(runtime, {
+          scenario: "gui",
+          publicBrief: "Register a user.",
+          executionContract: "Write a Playwright suite.",
+          artifactPath: join(directory, "register.spec.ts"),
+        }),
+      ).rejects.toBe(stopped);
+
+      expect(run).toHaveBeenCalledTimes(2);
+      expect(run.mock.calls[1]?.[1]).toContain(
+        "write_file tool arguments were malformed",
+      );
+      expect(run.mock.calls[1]?.[1]).toContain("Retry the task from scratch");
     } finally {
       await runtime.close();
     }
@@ -299,7 +352,7 @@ describe("model configuration", () => {
         model: "glm-5.3",
       }),
     ).toMatchObject({
-      id: "closest-non-thinking-v1",
+      id: "classroom-model-policy-v2",
       mode: "lowest-supported-thinking",
       temperature: 0,
       reasoningEffort: "low",
@@ -413,7 +466,7 @@ describe("model configuration", () => {
     });
   });
 
-  it("supports dated and undated DeepSeek aliases with the same policy", () => {
+  it("enables light thinking and modest sampling for DeepSeek aliases", () => {
     for (const model of [
       "deepseek-v4-pro",
       "deepseek-v4-pro-0813",
@@ -429,9 +482,11 @@ describe("model configuration", () => {
         }),
       ).toMatchObject({
         model,
-        mode: "non-thinking",
-        temperature: 0,
-        providerData: { thinking: { type: "disabled" } },
+        id: "classroom-model-policy-v2",
+        mode: "lowest-supported-thinking",
+        temperature: 0.2,
+        reasoningEffort: "low",
+        providerData: { thinking: { type: "enabled" } },
       });
     }
   });
@@ -561,9 +616,9 @@ describe("test authoring instructions", () => {
     expect(api).toContain(
       "include the received response body as a safe assertion message",
     );
-    expect(gui).toContain("375-pixel viewport");
-    expect(gui).toContain("error summary");
-    expect(gui).toContain("documented Playwright Test matchers");
+    expect(gui).toContain("Match the heading with /register|create.*account|sign up/i");
+    expect(gui).toContain("alert summary");
+    expect(gui).toContain("documented Playwright matchers");
   });
 
   it("prints only the caller-supplied safe prompt preview", () => {
@@ -586,6 +641,80 @@ describe("test authoring instructions", () => {
     expect(terminalOutput).toContain("/tmp/train-tests-prompt.json");
     expect(terminalOutput).not.toContain("3 to 20 characters");
     expect(terminalOutput).not.toContain("Username policy");
+  });
+
+  it("prints per-stage metrics and a machine-readable model total", () => {
+    let terminalOutput = "";
+    const output = new Writable({
+      write(chunk, _encoding, callback) {
+        terminalOutput += chunk.toString();
+        callback();
+      },
+    });
+    const presenter = new TerminalPresenter({ interactive: false, output });
+
+    presenter.modelCall({
+      stage: "direct",
+      durationMs: 1_234,
+      usage: {
+        requests: 1,
+        inputTokens: 100,
+        outputTokens: 200,
+        totalTokens: 300,
+        requestUsage: [],
+      },
+    });
+    presenter.modelSummary({
+      model: "example-model",
+      stages: 1,
+      durationMs: 1_234,
+      requests: 1,
+      inputTokens: 100,
+      outputTokens: 200,
+      totalTokens: 300,
+      calls: [
+        {
+          stage: "direct",
+          durationMs: 1_234,
+          usage: {
+            requests: 1,
+            inputTokens: 100,
+            outputTokens: 200,
+            totalTokens: 300,
+            requestUsage: [],
+          },
+        },
+      ],
+    });
+
+    expect(terminalOutput).toContain("[model] direct · 1.2s");
+    expect(terminalOutput).toContain("input 100 · output 200 · total 300 tokens");
+    const summaryLine = terminalOutput
+      .split("\n")
+      .find((line) => line.startsWith("MODEL_RUN_SUMMARY "));
+    expect(summaryLine).toBeTruthy();
+    expect(JSON.parse(summaryLine!.slice("MODEL_RUN_SUMMARY ".length))).toEqual({
+      model: "example-model",
+      stages: 1,
+      durationMs: 1_234,
+      requests: 1,
+      inputTokens: 100,
+      outputTokens: 200,
+      totalTokens: 300,
+      calls: [
+        {
+          stage: "direct",
+          durationMs: 1_234,
+          usage: {
+            requests: 1,
+            inputTokens: 100,
+            outputTokens: 200,
+            totalTokens: 300,
+            requestUsage: [],
+          },
+        },
+      ],
+    });
   });
 });
 
@@ -656,6 +785,215 @@ describe("repair workspace", () => {
 });
 
 describe("agent file workspace", () => {
+  it("preserves usage and responses from a state-bearing runner failure", () => {
+    const runnerError = new MaxTurnsExceededError("Max turns (6) exceeded", {
+      usage: {
+        requests: 2,
+        inputTokens: 120,
+        outputTokens: 30,
+        totalTokens: 150,
+        requestUsage: [],
+      },
+      _modelResponses: [{ id: "failed-response" }],
+    } as never);
+
+    const converted = generationArtifactErrorFromRunnerError(runnerError, {
+      instructions: "repair the tests",
+      input: "current suite and feedback",
+    });
+
+    expect(converted).toMatchObject({
+      message: "Max turns (6) exceeded",
+      usage: { requests: 2, totalTokens: 150 },
+      rawResponses: [{ id: "failed-response" }],
+      prompt: {
+        instructions: "repair the tests",
+        input: "current suite and feedback",
+      },
+      cause: runnerError,
+    });
+  });
+
+  it("preserves implementation-repair evidence from a state-bearing runner failure", async () => {
+    const runtime = new CourseModelRuntime({
+      envFile: "/unused/model.env",
+      baseUrl: "https://provider.example/v1",
+      apiKey: "secret-for-test",
+      model: "qwen3.8-max",
+    });
+    const directory = await temporaryDirectory();
+    const runnerError = new ModelBehaviorError("invalid model tool call", {
+      usage: {
+        requests: 1,
+        inputTokens: 80,
+        outputTokens: 20,
+        totalTokens: 100,
+        requestUsage: [],
+      },
+      _modelResponses: [{ id: "repair-failed-response" }],
+    } as never);
+    vi.spyOn(runtime.runner, "run").mockRejectedValue(runnerError);
+
+    try {
+      await expect(
+        runTddRepair(runtime, {
+          scenario: "gui",
+          publicBrief: "Register an account.",
+          implementationContract: "Write one index.html file.",
+          implementationPath: join(directory, "index.html"),
+          currentImplementation: "<html><body>current</body></html>",
+          frozenTrainTests: "test('registration', () => {});",
+          initialTestResult: {
+            status: "RED",
+            summary: "One assertion failed.",
+            output: "failed",
+          },
+          runTrainTests: async () => ({
+            status: "RED",
+            summary: "One assertion failed.",
+            output: "failed",
+          }),
+        }),
+      ).rejects.toMatchObject<Partial<GenerationArtifactError>>({
+        name: "GenerationArtifactError",
+        usage: {
+          requests: 1,
+          inputTokens: 80,
+          outputTokens: 20,
+          totalTokens: 100,
+          requestUsage: [],
+        },
+        rawResponses: [{ id: "repair-failed-response" }],
+        prompt: {
+          instructions: expect.stringContaining("Repair the implementation"),
+          input: expect.stringContaining("Current train-test result"),
+        },
+        cause: runnerError,
+      });
+    } finally {
+      await runtime.close();
+    }
+  });
+
+  it("combines earlier repair evidence when a later model round fails", async () => {
+    const runtime = new CourseModelRuntime({
+      envFile: "/unused/model.env",
+      baseUrl: "https://provider.example/v1",
+      apiKey: "secret-for-test",
+      model: "qwen3.8-max",
+    });
+    const directory = await temporaryDirectory();
+    const implementationPath = join(directory, "index.html");
+    const laterError = new ModelBehaviorError("second repair failed", {
+      usage: {
+        requests: 1,
+        inputTokens: 200,
+        outputTokens: 30,
+        totalTokens: 230,
+        requestUsage: [],
+      },
+      _modelResponses: [{ id: "second-response" }],
+    } as never);
+    vi.spyOn(runtime.runner, "run")
+      .mockImplementationOnce(async (agent) => {
+        const writeTool = agent.tools[0];
+        if (writeTool?.type !== "function") {
+          throw new Error("expected the implementation write tool");
+        }
+        await writeTool.invoke(
+          {} as never,
+          JSON.stringify({
+            path: implementationPath,
+            content: "<html><body>first repair</body></html>",
+          }),
+        );
+        return {
+          state: {
+            usage: {
+              requests: 1,
+              inputTokens: 100,
+              outputTokens: 20,
+              totalTokens: 120,
+              requestUsage: [],
+            },
+          },
+          rawResponses: [{ id: "first-response" }],
+          finalOutput: "written",
+        } as never;
+      })
+      .mockRejectedValueOnce(laterError);
+
+    try {
+      await expect(
+        runTddRepair(runtime, {
+          scenario: "gui",
+          publicBrief: "Register an account.",
+          implementationContract: "Write one index.html file.",
+          implementationPath,
+          currentImplementation: "<html><body>current</body></html>",
+          frozenTrainTests: "test('registration', () => {});",
+          initialTestResult: {
+            status: "RED",
+            summary: "Two assertions failed.",
+            output: "failed twice",
+          },
+          runTrainTests: async () => ({
+            status: "RED",
+            summary: "One assertion failed.",
+            output: "failed once",
+          }),
+          maxRepairs: 2,
+        }),
+      ).rejects.toMatchObject<Partial<GenerationArtifactError>>({
+        name: "GenerationArtifactError",
+        usage: {
+          requests: 2,
+          inputTokens: 300,
+          outputTokens: 50,
+          totalTokens: 350,
+          requestUsage: [],
+        },
+        rawResponses: [
+          { id: "first-response" },
+          { id: "second-response" },
+        ],
+        prompt: {
+          instructions: expect.stringContaining("Repair the implementation"),
+          input: expect.stringContaining("NEXT REPAIR MODEL CALL"),
+        },
+        cause: laterError,
+      });
+    } finally {
+      await runtime.close();
+    }
+  });
+
+  it("rejects an unchanged repair without consuming its write", async () => {
+    const directory = await temporaryDirectory();
+    const allowedPath = join(directory, "register.spec.ts");
+    const current =
+      'import { test } from "@playwright/test";\ntest("current", async () => {});\n';
+    const workspace = new AgentFileWorkspace({
+      artifactKind: "gui-tests",
+      allowedPath,
+      writeLabel: "test-suite rewrite",
+      rejectUnchangedFrom: current,
+    });
+
+    await expect(workspace.writeFile(allowedPath, current)).resolves.toMatchObject({
+      accepted: false,
+      message: expect.stringContaining("unchanged"),
+    });
+    expect(workspace.writes).toBe(0);
+
+    const corrected =
+      'import { test } from "@playwright/test";\ntest("corrected", async () => {});\n';
+    await expect(
+      workspace.writeFile(allowedPath, corrected),
+    ).resolves.toMatchObject({ accepted: true });
+    expect(workspace.writes).toBe(1);
+  });
+
   it("writes the authorized artifact and rejects every other path", async () => {
     const directory = await temporaryDirectory();
     const allowedPath = join(directory, "register.ts");

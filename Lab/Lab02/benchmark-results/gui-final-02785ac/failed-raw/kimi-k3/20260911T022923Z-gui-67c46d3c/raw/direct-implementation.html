@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Register — Public Service Portal</title>
+<style>
+  :root {
+    --navy: #0b1f3a;
+    --navy-dark: #071527;
+    --orange: #e8701a;
+    --orange-dark: #c85e10;
+    --bg: #eef2f6;
+    --panel: #ffffff;
+    --text: #1a2433;
+    --muted: #5a6b7f;
+    --border: #c9d4e0;
+    --error: #b3261e;
+    --error-bg: #fdecea;
+    --success: #1e6b34;
+    --focus: #2e6fb7;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    font-family: "Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  .service-header {
+    background: var(--navy);
+    color: #fff;
+    width: 100%;
+    border-bottom: 4px solid var(--orange);
+  }
+  .service-header-inner {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 1.1rem 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+  }
+  .service-mark {
+    width: 44px; height: 44px;
+    flex: 0 0 auto;
+    border-radius: 8px;
+    background: var(--orange);
+    color: var(--navy-dark);
+    display: grid;
+    place-items: center;
+    font-weight: 800;
+    font-size: 1.25rem;
+    letter-spacing: -0.5px;
+  }
+  .service-header h1 { font-size: 1.3rem; font-weight: 700; letter-spacing: 0.2px; }
+  .service-header p { font-size: 0.85rem; color: #b9c8da; margin-top: 0.1rem; }
+
+  main {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 2.5rem 1rem 3rem;
+  }
+  .panel {
+    background: var(--panel);
+    width: 100%;
+    max-width: 720px;
+    border-radius: 10px;
+    box-shadow: 0 6px 24px rgba(11, 31, 58, 0.12);
+    border: 1px solid #dde5ee;
+    padding: 2rem 2rem 2.25rem;
+  }
+  .panel h2 {
+    font-size: 1.45rem;
+    color: var(--navy);
+    margin-bottom: 0.35rem;
+  }
+  .panel .intro { color: var(--muted); font-size: 0.95rem; margin-bottom: 1.5rem; }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.1rem 1.25rem;
+  }
+  .field { display: flex; flex-direction: column; }
+  .field.full { grid-column: 1 / -1; }
+  label { font-weight: 600; font-size: 0.92rem; margin-bottom: 0.35rem; color: var(--navy); }
+  .optional { font-weight: 400; color: var(--muted); font-size: 0.82rem; margin-left: 0.25rem; }
+  .hint { font-size: 0.8rem; color: var(--muted); margin-top: 0.3rem; }
+
+  input[type="text"], input[type="email"], input[type="password"], input[type="date"] {
+    width: 100%;
+    padding: 0.65rem 0.75rem;
+    font-size: 1rem;
+    border: 1.5px solid var(--border);
+    border-radius: 6px;
+    background: #fff;
+    color: var(--text);
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  input:focus-visible, button:focus-visible, .checkbox-wrap input:focus-visible + .box {
+    outline: 3px solid var(--focus);
+    outline-offset: 2px;
+  }
+  input[aria-invalid="true"] {
+    border-color: var(--error);
+    background: #fffafa;
+  }
+
+  .password-wrap { position: relative; }
+  .password-wrap input { padding-right: 4.4rem; }
+  .toggle-pw {
+    position: absolute;
+    right: 0.35rem;
+    top: 50%;
+    transform: translateY(-50%);
+    border: 1px solid var(--border);
+    background: #f4f7fb;
+    color: var(--navy);
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 0.35rem 0.6rem;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  .toggle-pw:hover { background: #e6edf5; }
+
+  .error-msg {
+    display: none;
+    color: var(--error);
+    font-size: 0.82rem;
+    margin-top: 0.35rem;
+    font-weight: 500;
+  }
+  .error-msg.visible { display: flex; align-items: flex-start; gap: 0.3rem; }
+  .error-msg::before { content: "⚠"; font-size: 0.8rem; line-height: 1.4; }
+
+  .checkbox-wrap {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    grid-column: 1 / -1;
+    cursor: pointer;
+  }
+  .checkbox-wrap input {
+    width: 1.15rem; height: 1.15rem;
+    margin-top: 0.15rem;
+    accent-color: var(--orange);
+    flex: 0 0 auto;
+    cursor: pointer;
+  }
+  .checkbox-wrap span { font-size: 0.92rem; }
+  .checkbox-wrap a { color: var(--navy); }
+
+  .submit-row { grid-column: 1 / -1; margin-top: 0.4rem; }
+  button[type="submit"] {
+    width: 100%;
+    background: var(--orange);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 0.85rem 1rem;
+    font-size: 1.05rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  button[type="submit"]:hover { background: var(--orange-dark); }
+  button[type="submit"]:active { transform: translateY(1px); }
+
+  .status-banner {
+    display: none;
+    grid-column: 1 / -1;
+    border-radius: 6px;
+    padding: 0.8rem 1rem;
+    font-size: 0.92rem;
+    font-weight: 600;
+  }
+  .status-banner.error { display: block; background: var(--error-bg); color: var(--error); border: 1px solid #f2b8b5; }
+  .status-banner.success { display: block; background: #e6f4ea; color: var(--success); border: 1px solid #b7dfc2; }
+
+  .success-view { text-align: center; padding: 1rem 0; }
+  .success-view .tick {
+    width: 56px; height: 56px;
+    border-radius: 50%;
+    background: #e6f4ea;
+    color: var(--success);
+    display: grid; place-items: center;
+    font-size: 1.8rem;
+    margin: 0 auto 1rem;
+  }
+  .success-view h2 { margin-bottom: 0.5rem; }
+  .success-view p { color: var(--muted); margin-bottom: 1.25rem; }
+  .link-btn {
+    background: none; border: none; color: var(--navy);
+    text-decoration: underline; cursor: pointer; font-size: 0.95rem;
+  }
+
+  footer {
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.8rem;
+    padding: 1rem;
+  }
+
+  @media (max-width: 560px) {
+    .form-grid { grid-template-columns: 1fr; }
+    .panel { padding: 1.5rem 1.25rem 1.75rem; }
+    .service-header h1 { font-size: 1.1rem; }
+  }
+</style>
+</head>
+<body>
+
+<header class="service-header">
+  <div class="service-header-inner">
+    <div class="service-mark" aria-hidden="true">PS</div>
+    <div>
+      <h1>Public Service Portal</h1>
+      <p>Official citizen account registration</p>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="panel" aria-labelledby="form-heading">
+    <div id="form-view">
+      <h2 id="form-heading">Create your account</h2>
+      <p class="intro">All fields marked <span aria-hidden="true">*</span> are required. Your information is handled securely.</p>
+
+      <form id="reg-form" novalidate>
+        <div class="form-grid">
+          <div id="status-banner" class="status-banner" role="alert" aria-live="assertive"></div>
+
+          <div class="field">
+            <label for="username">Username <span aria-hidden="true">*</span></label>
+            <input type="text" id="username" name="username" autocomplete="username"
+                   required minlength="3" maxlength="20" pattern="[A-Za-z0-9_]+"
+                   aria-describedby="username-hint username-error">
+            <p class="hint" id="username-hint">3–20 characters: letters, numbers, underscores.</p>
+            <p class="error-msg" id="username-error"></p>
+          </div>
+
+          <div class="field">
+            <label for="email">Email address <span aria-hidden="true">*</span></label>
+            <input type="email" id="email" name="email" autocomplete="email"
+                   required maxlength="254" aria-describedby="email-error">
+            <p class="error-msg" id="email-error"></p>
+          </div>
+
+          <div class="field">
+            <label for="dob">Date of birth <span class="optional">(optional)</span></label>
+            <input type="date" id="dob" name="dob" autocomplete="bday"
+                   aria-describedby="dob-hint dob-error">
+            <p class="hint" id="dob-hint">You must be at least 13 years old.</p>
+            <p class="error-msg" id="dob-error"></p>
+          </div>
+
+          <div class="field">
+            <label for="password">Password <span aria-hidden="true">*</span></label>
+            <div class="password-wrap">
+              <input type="password" id="password" name="password" autocomplete="new-password"
+                     required minlength="8" maxlength="72"
+                     aria-describedby="password-hint password-error">
+              <button type="button" class="toggle-pw" data-target="password"
+                      aria-pressed="false" aria-label="Show password">Show</button>
+            </div>
+            <p class="hint" id="password-hint">At least 8 characters, with a letter and a number.</p>
+            <p class="error-msg" id="password-error"></p>
+          </div>
+
+          <div class="field">
+            <label for="confirm">Confirm password <span aria-hidden="true">*</span></label>
+            <div class="password-wrap">
+              <input type="password" id="confirm" name="confirm" autocomplete="new-password"
+                     required maxlength="72" aria-describedby="confirm-error">
+              <button type="button" class="toggle-pw" data-target="confirm"
+                      aria-pressed="false" aria-label="Show password confirmation">Show</button>
+            </div>
+            <p class="error-msg" id="confirm-error"></p>
+          </div>
+
+          <div class="field full">
+            <label class="checkbox-wrap" for="terms">
+              <input type="checkbox" id="terms" name="terms" required aria-describedby="terms-error">
+              <span>I agree to the <a href="#" id="terms-link">Terms of Service</a> and confirm the information provided is accurate. <span aria-hidden="true">*</span></span>
+            </label>
+            <p class="error-msg" id="terms-error"></p>
+          </div>
+
+          <div class="submit-row">
+            <button type="submit">Create account</button>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <div id="success-view" class="success-view" hidden>
+      <div class="tick" aria-hidden="true">✓</div>
+      <h2>Registration complete</h2>
+      <p id="success-msg">Your account has been created successfully.</p>
+      <button type="button" class="link-btn" id="register-another">Register another account</button>
+    </div>
+  </section>
+</main>
+
+<footer>Public Service Portal — a demonstration registration service.</footer>
+
+<script>
+(function () {
+  "use strict";
+
+  var STORAGE_KEY = "psp_registrations";
+  var form = document.getElementById("reg-form");
+  var banner = document.getElementById("status-banner");
+  var formView = document.getElementById("form-view");
+  var successView = document.getElementById("success-view");
+  var successMsg = document.getElementById("success-msg");
+
+  function getRegistrations() {
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      var data = raw ? JSON.parse(raw) : [];
+      return Array.isArray(data) ? data : [];
+    } catch (e) { return []; }
+  }
+  function saveRegistration(entry) {
+    try {
+      var list = getRegistrations();
+      list.push(entry);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+    } catch (e) { /* storage unavailable; validation still applies in-session */ }
+  }
+  function norm(s) { return s.trim().toLowerCase(); }
+
+  var fields = {
+    username: document.getElementById("username"),
+    email: document.getElementById("email"),
+    dob: document.getElementById("dob"),
+    password: document.getElementById("password"),
+    confirm: document.getElementById("confirm"),
+    terms: document.getElementById("terms")
+  };
+
+  function setError(name, message) {
+    var input = fields[name];
+    var err = document.getElementById(name + "-error");
+    if (message) {
+      err.textContent = message;
+      err.classList.add("visible");
+      input.setAttribute("aria-invalid", "true");
+    } else {
+      err.textContent = "";
+      err.classList.remove("visible");
+      input.removeAttribute("aria-invalid");
+    }
+  }
+
+  function validateUsername() {
+    var v = fields.username.value.trim();
+    if (!v) return "Username is required.";
+    if (v.length < 3) return "Username must be at least 3 characters long.";
+    if (v.length > 20) return "Username must be 20 characters or fewer.";
+    if (!/^[A-Za-z0-9_]+$/.test(v)) return "Username may only contain letters, numbers, and underscores.";
+    var taken = getRegistrations().some(function (r) { return norm(r.username) === norm(v); });
+    if (taken) return "This username is already registered. Please choose another.";
+    return "";
+  }
+
+  function validateEmail() {
+    var v = fields.email.value.trim();
+    if (!v) return "Email address is required.";
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v)) return "Enter a valid email address, e.g. name@example.com.";
+    var taken = getRegistrations().some(function (r) { return norm(r.email) === norm(v); });
+    if (taken) return "An account with this email address already exists.";
+    return "";
+  }
+
+  function validateDob() {
+    var v = fields.dob.value;
+    if (!v) return ""; // optional
+    var d = new Date(v + "T00:00:00");
+    if (isNaN(d.getTime())) return "Enter a valid date.";
+    var today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (d > today) return "Date of birth cannot be in the future.";
+    if (d.getFullYear() < 1900) return "Enter a date of birth after 1900.";
+    var min = new Date(today);
+    min.setFullYear(min.getFullYear() - 13);
+    if (d > min) return "You must be at least 13 years old to register.";
+    return "";
+  }
+
+  function validatePassword() {
+    var v = fields.password.value;
+    if (!v) return "Password is required.";
+    if (v.length < 8) return "Password must be at least 8 characters long.";
+    if (v.length > 72) return "Password must be 72 characters or fewer.";
+    if (!/[A-Za-z]/.test(v) || !/[0-9]/.test(v)) return "Password must include at least one letter and one number.";
+    return "";
+  }
+
+  function validateConfirm() {
+    var v = fields.confirm.value;
+    if (!v) return "Please confirm your password.";
+    if (v !== fields.password.value) return "Passwords do not match.";
+    return "";
+  }
+
+  function validateTerms() {
+    return fields.terms.checked ? "" : "You must accept the Terms of Service to register.";
+  }
+
+  var validators = {
+    username: validateUsername,
+    email: validateEmail,
+    dob: validateDob,
+    password: validatePassword,
+    confirm: validateConfirm,
+    terms: validateTerms
+  };
+
+  function validateField(name) {
+    var msg = validators[name]();
+    setError(name, msg);
+    return !msg;
+  }
+
+  // Live validation once a field has been touched
+  Object.keys(validators).forEach(function (name) {
+    var input = fields[name];
+    var evt = input.type === "checkbox" ? "change" : "blur";
+    input.addEventListener(evt, function () { validateField(name); });
+    input.addEventListener("input", function () {
+      if (input.getAttribute("aria-invalid") === "true") validateField(name);
+      if (name === "password" && fields.confirm.value &&
+          fields.confirm.getAttribute("aria-invalid") === "true") validateField("confirm");
+    });
+  });
+
+  // Show / hide password toggles
+  document.querySelectorAll(".toggle-pw").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var input = document.getElementById(btn.getAttribute("data-target"));
+      var showing = input.type === "text";
+      input.type = showing ? "password" : "text";
+      btn.textContent = showing ? "Show" : "Hide";
+      btn.setAttribute("aria-pressed", String(!showing));
+      btn.setAttribute("aria-label", (showing ? "Show " : "Hide ") +
+        (input.id === "confirm" ? "password confirmation" : "password"));
+      input.focus();
+    });
+  });
+
+  // Terms link placeholder (no external navigation in this demo)
+  document.getElementById("terms-link").addEventListener("click", function (e) {
+    e.preventDefault();
+    alert("Terms of Service: use this service lawfully, provide accurate information, and keep your credentials confidential.");
+  });
+
+  function showBanner(type, message) {
+    banner.className = "status-banner " + type;
+    banner.textContent = message;
+  }
+  function hideBanner() {
+    banner.className = "status-banner";
+    banner.textContent = "";
+  }
+
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+    hideBanner();
+
+    var order = ["username", "email", "dob", "password", "confirm", "terms"];
+    var firstInvalid = null;
+    order.forEach(function (name) {
+      if (!validateField(name) && !firstInvalid) firstInvalid = fields[name];
+    });
+
+    if (firstInvalid) {
+      showBanner("error", "Please correct the highlighted fields and try again.");
+      firstInvalid.focus();
+      return;
+    }
+
+    saveRegistration({
+      username: fields.username.value.trim(),
+      email: fields.email.value.trim(),
+      dob: fields.dob.value || null,
+      registeredAt: new Date().toISOString()
+    });
+
+    successMsg.textContent = "Welcome, " + fields.username.value.trim() +
+      "! A confirmation will be sent to " + fields.email.value.trim() + ".";
+    formView.hidden = true;
+    successView.hidden = false;
+    successView.setAttribute("tabindex", "-1");
+    successView.focus();
+  });
+
+  document.getElementById("register-another").addEventListener("click", function () {
+    form.reset();
+    Object.keys(validators).forEach(function (name) { setError(name, ""); });
+    document.querySelectorAll(".toggle-pw").forEach(function (btn) {
+      var input = document.getElementById(btn.getAttribute("data-target"));
+      input.type = "password";
+      btn.textContent = "Show";
+      btn.setAttribute("aria-pressed", "false");
+    });
+    hideBanner();
+    successView.hidden = true;
+    formView.hidden = false;
+    fields.username.focus();
+  });
+})();
+</script>
+</body>
+</html>

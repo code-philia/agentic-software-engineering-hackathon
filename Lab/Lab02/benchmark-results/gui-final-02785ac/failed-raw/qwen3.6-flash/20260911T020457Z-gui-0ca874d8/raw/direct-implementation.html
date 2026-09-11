@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Registration</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #e4eaf0; color: #222; min-height: 100vh; display: flex; flex-direction: column; }
+header { background: #1a2744; color: #fff; padding: 1.25rem 2rem; display: flex; align-items: center; gap: .75rem; }
+header h1 { font-size: 1.35rem; font-weight: 600; letter-spacing: .02em; }
+header .accent-bar { width: 4px; height: 28px; background: #e8853a; border-radius: 2px; flex-shrink: 0; }
+main { flex: 1; display: flex; justify-content: center; padding: 2rem 1rem; }
+.panel { background: #fff; border-radius: 8px; box-shadow: 0 2px 12px rgba(0,0,0,.1); padding: 2rem 2.25rem; width: 100%; max-width: 640px; }
+.panel h2 { font-size: 1.25rem; margin-bottom: .25rem; color: #1a2744; }
+.panel p.subtitle { font-size: .9rem; color: #666; margin-bottom: 1.75rem; }
+.fieldset { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem 1.5rem; }
+@media (max-width: 520px) { .fieldset { grid-template-columns: 1fr; } }
+.field { display: flex; flex-direction: column; gap: .35rem; position: relative; }
+.field.full { grid-column: 1 / -1; }
+label { font-size: .85rem; font-weight: 600; color: #333; }
+input[type="text"], input[type="email"], input[type="password"], input[type="date"] { padding: .55rem .75rem; border: 1px solid #b0bec5; border-radius: 4px; font-size: .95rem; transition: border-color .15s, box-shadow .15s; width: 100%; }
+input:focus { outline: none; border-color: #e8853a; box-shadow: 0 0 0 3px rgba(232,133,58,.18); }
+input.invalid { border-color: #d32f2f; }
+input.invalid:focus { box-shadow: 0 0 0 3px rgba(211,47,47,.15); }
+.error-msg { font-size: .78rem; color: #d32f2f; min-height: 1.1em; }
+.toggle-pw { position: absolute; right: 8px; top: 28px; background: none; border: none; cursor: pointer; padding: 4px; color: #666; font-size: .8rem; line-height: 1; }
+.toggle-pw:hover { color: #1a2744; }
+.toggle-pw svg { vertical-align: middle; }
+.checkbox-field { grid-column: 1 / -1; display: flex; align-items: flex-start; gap: .5rem; margin-top: .25rem; }
+.checkbox-field input[type="checkbox"] { width: 18px; height: 18px; margin-top: 2px; accent-color: #e8853a; cursor: pointer; }
+.checkbox-field label { font-size: .88rem; font-weight: 400; cursor: pointer; }
+.checkbox-field a { color: #1a2744; text-decoration: underline; }
+.submit-btn { grid-column: 1 / -1; background: #e8853a; color: #fff; border: none; padding: .7rem 1.5rem; font-size: 1rem; font-weight: 600; border-radius: 4px; cursor: pointer; transition: background .15s; margin-top: .5rem; }
+.submit-btn:hover { background: #d4752e; }
+.submit-btn:focus { outline: 2px solid #1a2744; outline-offset: 2px; }
+.submit-btn:disabled { opacity: .55; cursor: not-allowed; }
+.success-banner { display: none; background: #e8f5e9; border: 1px solid #a5d6a7; border-radius: 4px; padding: 1rem 1.25rem; margin-bottom: 1.5rem; color: #2e7d32; font-size: .95rem; }
+.success-banner.show { display: block; }
+.duplicate-note { font-size: .82rem; color: #d32f2f; margin-top: .5rem; display: none; }
+.duplicate-note.show { display: block; }
+</style>
+</head>
+<body>
+<header>
+  <div class="accent-bar" aria-hidden="true"></div>
+  <h1>Create Your Account</h1>
+</header>
+<main>
+  <div class="panel">
+    <h2>Registration</h2>
+    <p class="subtitle">Fill in the fields below to create your account.</p>
+    <div id="successBanner" class="success-banner" role="alert">✓&ensp;Registration successful! Thank you for signing up.</div>
+    <form id="regForm" novalidate autocomplete="on">
+      <div class="fieldset">
+        <div class="field">
+          <label for="username">Username</label>
+          <input type="text" id="username" name="username" autocomplete="username" required minlength="3" maxlength="30" placeholder="jdoe42">
+          <span class="error-msg" id="usernameErr" aria-live="polite"></span>
+        </div>
+        <div class="field">
+          <label for="email">Email address</label>
+          <input type="email" id="email" name="email" autocomplete="email" required placeholder="you@example.com">
+          <span class="error-msg" id="emailErr" aria-live="polite"></span>
+        </div>
+        <div class="field">
+          <label for="dob">Date of birth <span style="font-weight:400;color:#888;">(optional)</span></label>
+          <input type="date" id="dob" name="dob" autocomplete="bday">
+          <span class="error-msg" id="dobErr" aria-live="polite"></span>
+        </div>
+        <div class="field">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="new-password" autocomplete="new-password" required minlength="8" maxlength="128">
+          <button type="button" class="toggle-pw" data-target="password" aria-label="Show password" tabindex="0">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+          <span class="error-msg" id="passwordErr" aria-live="polite"></span>
+        </div>
+        <div class="field full">
+          <label for="confirmPassword">Confirm password</label>
+          <input type="password" id="confirmPassword" name="confirm-new-password" autocomplete="new-password" required minlength="8" maxlength="128">
+          <button type="button" class="toggle-pw" data-target="confirmPassword" aria-label="Show password" tabindex="0">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+          <span class="error-msg" id="confirmPasswordErr" aria-live="polite"></span>
+        </div>
+        <div class="checkbox-field">
+          <input type="checkbox" id="terms" name="terms" required>
+          <label for="terms">I accept the <a href="#terms-modal" onclick="event.preventDefault()">Terms of Service</a> and <a href="#privacy-modal" onclick="event.preventDefault()">Privacy Policy</a>.</label>
+        </div>
+        <span class="error-msg duplicate-note" id="duplicateNote" aria-live="assertive"></span>
+        <button type="submit" class="submit-btn" id="submitBtn">Create Account</button>
+      </div>
+    </form>
+  </div>
+</main>
+
+<script>
+(function() {
+  const STORAGE_KEY = 'registered_accounts';
+  const form = document.getElementById('regForm');
+  const successBanner = document.getElementById('successBanner');
+  const duplicateNote = document.getElementById('duplicateNote');
+
+  function getRegistered() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch { return []; }
+  }
+  function saveRegistered(data) { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }
+
+  // Toggle password visibility
+  document.querySelectorAll('.toggle-pw').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const target = document.getElementById(btn.dataset.target);
+      const isPassword = target.type === 'password';
+      target.type = isPassword ? 'text' : 'password';
+      btn.setAttribute('aria-label', isPassword ? 'Hide password' : 'Show password');
+      btn.querySelector('svg').innerHTML = isPassword
+        ? '<path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 1 01-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>'
+        : '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+    });
+  });
+
+  function setError(id, msg) {
+    const el = document.getElementById(id + 'Err');
+    const input = document.getElementById(id);
+    if (msg) {
+      el.textContent = msg;
+      input.classList.add('invalid');
+    } else {
+      el.textContent = '';
+      input.classList.remove('invalid');
+    }
+  }
+
+  function validate() {
+    let valid = true;
+    const username = document.getElementById('username').value.trim();
+    const email = document.getElementById('email').value.trim().toLowerCase();
+    const dob = document.getElementById('dob').value;
+    const pw = document.getElementById('password').value;
+    const confirm = document.getElementById('confirmPassword').value;
+    const terms = document.getElementById('terms').checked;
+
+    setError('username', '');
+    setError('email', '');
+    setError('dob', '');
+    setError('password', '');
+    setError('confirmPassword', '');
+
+    if (!username) setError('username', 'Username is required.');
+    else if (username.length < 3) setError('username', 'Must be at least 3 characters.');
+    else if (!/^[a-zA-Z0-9_.-]+$/.test(username)) setError('username', 'Only letters, numbers, dots, hyphens, and underscores allowed.');
+
+    if (!email) setError('email', 'Email address is required.');
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) setError('email', 'Enter a valid email address.');
+
+    if (dob) {
+      const d = new Date(dob);
+      if (isNaN(d.getTime())) setError('dob', 'Enter a valid date.');
+      else {
+        const age = (Date.now() - d.getTime()) / (365.25 * 24 * 60 * 60 * 1000);
+        if (age < 13) setError('dob', 'You must be at least 13 years old.');
+        if (age > 120) setError('dob', 'Please enter a realistic date of birth.');
+      }
+    }
+
+    if (!pw) setError('password', 'Password is required.');
+    else if (pw.length < 8) setError('password', 'Must be at least 8 characters.');
+    else {
+      const checks = [];
+      if (!/[A-Z]/.test(pw)) checks.push('uppercase');
+      if (!/[a-z]/.test(pw)) checks.push('lowercase');
+      if (!/\d/.test(pw)) checks.push('a number');
+      if (!/[^a-zA-Z\d]/.test(pw)) checks.push('a special character');
+      if (checks.length) setError('password', 'Include ' + checks.join(', ') + '.');
+    }
+
+    if (!confirm) setError('confirmPassword', 'Please confirm your password.');
+    else if (confirm !== pw) setError('confirmPassword', 'Passwords do not match.');
+
+    if (!terms) {
+      valid = false;
+      // We don't show inline error on checkbox, just prevent submit
+    }
+
+    return valid;
+  }
+
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+    successBanner.classList.remove('show');
+    duplicateNote.classList.remove('show');
+
+    if (!validate()) return;
+
+    const email = document.getElementById('email').value.trim().toLowerCase();
+    const registered = getRegistered();
+
+    if (registered.some(r => r.email === email)) {
+      duplicateNote.textContent = 'An account with this email already exists.';
+      duplicateNote.classList.add('show');
+      return;
+    }
+
+    if (registered.some(r => r.username === document.getElementById('username').value.trim())) {
+      duplicateNote.textContent = 'This username is already taken.';
+      duplicateNote.classList.add('show');
+      return;
+    }
+
+    // Save without password
+    const entry = { username: document.getElementById('username').value.trim(), email: email };
+    registered.push(entry);
+    saveRegistered(registered);
+
+    form.reset();
+    document.querySelectorAll('input').forEach(i => i.classList.remove('invalid'));
+    document.querySelectorAll('.error-msg').forEach(e => e.textContent = '');
+    successBanner.classList.add('show');
+    successBanner.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+
+  // Clear errors on input
+  ['username','email','dob','password','confirmPassword'].forEach(id => {
+    document.getElementById(id).addEventListener('input', () => setError(id, ''));
+  });
+})();
+</script>
+</body>
+</html>

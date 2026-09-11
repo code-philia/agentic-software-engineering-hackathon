@@ -1,0 +1,54 @@
+{
+  "outcome": "RUN_ERROR",
+  "runId": "20260910T171920Z-gui-687b7762",
+  "runRoot": "/private/tmp/lab02-gui-bench-e8775ca/kimi-k3/Lab/Lab02/runs/20260910T171920Z-gui-687b7762",
+  "workspaceRoot": "/private/tmp/lab02-gui-bench-e8775ca/kimi-k3/Lab/Lab02/workspace/gui",
+  "modelConfiguration": {
+    "envFile": ".env",
+    "model": "kimi-k3",
+    "inferencePolicy": {
+      "id": "closest-non-thinking-v1",
+      "model": "kimi-k3",
+      "mode": "non-thinking",
+      "temperature": 0,
+      "providerData": {
+        "thinking": {
+          "type": "disabled"
+        }
+      }
+    }
+  },
+  "modelPerformance": {
+    "model": "kimi-k3",
+    "stages": 1,
+    "durationMs": 18503,
+    "requests": 1,
+    "inputTokens": 971,
+    "outputTokens": 6960,
+    "totalTokens": 7931,
+    "calls": [
+      {
+        "stage": "direct",
+        "durationMs": 18503,
+        "usage": {
+          "requests": 1,
+          "inputTokens": 971,
+          "outputTokens": 6960,
+          "totalTokens": 7931,
+          "requestUsage": [
+            {
+              "inputTokens": 971,
+              "outputTokens": 6960,
+              "totalTokens": 7931
+            }
+          ]
+        },
+        "status": "completed"
+      }
+    ]
+  },
+  "error": {
+    "name": "ModelBehaviorError",
+    "message": "Chat Completions response terminated with finish_reason='length' but produced no assistant text, tool call, or refusal."
+  }
+}

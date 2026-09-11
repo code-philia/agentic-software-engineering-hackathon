@@ -13,6 +13,7 @@
     "demo:api": "tsx src/cli/demo.ts api",
     "demo:gui": "tsx src/cli/demo.ts gui",
     "rehearse:gui": "tsx src/cli/rehearse-gui.ts",
+    "summarize:runs": "tsx src/cli/summarize-runs.ts",
     "doctor": "tsx src/cli/doctor.ts",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --passWithNoTests",

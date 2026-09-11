@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Registration</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background-color: #e8edf2;
+  color: #1a1a2e;
+  line-height: 1.5;
+}
+header {
+  width: 100%;
+  background-color: #0d1b2a;
+  color: #ffffff;
+  padding: 1rem 2rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  border-bottom: 3px solid #e8742a;
+}
+main {
+  display: flex;
+  justify-content: center;
+  padding: 2rem 1rem;
+}
+.panel {
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  padding: 2rem;
+  width: 100%;
+  max-width: 720px;
+}
+.panel h1 {
+  font-size: 1.5rem;
+  margin-bottom: 1.5rem;
+  color: #0d1b2a;
+}
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem 1.5rem;
+}
+@media (max-width: 600px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 0.5rem;
+}
+.field.full-width {
+  grid-column: 1 / -1;
+}
+label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+  color: #0d1b2a;
+}
+input[type="text"],
+input[type="email"],
+input[type="date"],
+input[type="password"] {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #b0bec5;
+  border-radius: 4px;
+  font-size: 1rem;
+  width: 100%;
+  transition: border-color 0.2s;
+}
+input:focus {
+  outline: none;
+  border-color: #e8742a;
+  box-shadow: 0 0 0 2px rgba(232,116,42,0.2);
+}
+input.invalid {
+  border-color: #c62828;
+}
+.error-msg {
+  color: #c62828;
+  font-size: 0.8rem;
+  margin-top: 0.2rem;
+  min-height: 1.1em;
+}
+.password-wrapper {
+  position: relative;
+}
+.password-wrapper input {
+  padding-right: 2.5rem;
+}
+.toggle-pw {
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: #e8742a;
+  font-weight: 600;
+  padding: 0.2rem 0.4rem;
+}
+.toggle-pw:focus {
+  outline: 2px solid #e8742a;
+  outline-offset: 2px;
+}
+.checkbox-field {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+.checkbox-field input[type="checkbox"] {
+  margin-top: 0.2rem;
+  width: 1.1rem;
+  height: 1.1rem;
+  accent-color: #e8742a;
+}
+.checkbox-field label {
+  font-weight: 400;
+  font-size: 0.9rem;
+}
+.actions {
+  grid-column: 1 / -1;
+  margin-top: 1rem;
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+button[type="submit"] {
+  background-color: #e8742a;
+  color: #fff;
+  border: none;
+  padding: 0.6rem 2rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+button[type="submit"]:hover {
+  background-color: #cf6520;
+}
+button[type="submit"]:focus {
+  outline: 2px solid #0d1b2a;
+  outline-offset: 2px;
+}
+.success-msg {
+  grid-column: 1 / -1;
+  background: #e8f5e9;
+  color: #2e7d32;
+  padding: 0.75rem 1rem;
+  border-radius: 4px;
+  font-size: 0.95rem;
+  display: none;
+}
+.success-msg.visible {
+  display: block;
+}
+</style>
+</head>
+<body>
+<header>Public Service Registration</header>
+<main>
+<div class="panel">
+<h1>Create Your Account</h1>
+<form id="regForm" novalidate>
+<div class="form-grid">
+  <div class="field">
+    <label for="username">Username <span aria-label="required">*</span></label>
+    <input type="text" id="username" name="username" required autocomplete="username" minlength="3" maxlength="30" placeholder="Choose a username">
+    <div class="error-msg" id="usernameError" role="alert"></div>
+  </div>
+  <div class="field">
+    <label for="email">Email Address <span aria-label="required">*</span></label>
+    <input type="email" id="email" name="email" required autocomplete="email" placeholder="you@example.com">
+    <div class="error-msg" id="emailError" role="alert"></div>
+  </div>
+  <div class="field">
+    <label for="dob">Date of Birth</label>
+    <input type="date" id="dob" name="dob" autocomplete="bday">
+    <div class="error-msg" id="dobError" role="alert"></div>
+  </div>
+  <div class="field">
+    <label for="password">Password <span aria-label="required">*</span></label>
+    <div class="password-wrapper">
+      <input type="password" id="password" name="password" required autocomplete="new-password" minlength="8" placeholder="Minimum 8 characters">
+      <button type="button" class="toggle-pw" data-target="password" aria-label="Show password">Show</button>
+    </div>
+    <div class="error-msg" id="passwordError" role="alert"></div>
+  </div>
+  <div class="field full-width">
+    <label for="confirmPassword">Confirm Password <span aria-label="required">*</span></label>
+    <div class="password-wrapper">
+      <input type="password" id="confirmPassword" name="confirmPassword" required autocomplete="new-password" minlength="8" placeholder="Re-enter your password">
+      <button type="button" class="toggle-pw" data-target="confirmPassword" aria-label="Show confirm password">Show</button>
+    </div>
+    <div class="error-msg" id="confirmPasswordError" role="alert"></div>
+  </div>
+  <div class="checkbox-field">
+    <input type="checkbox" id="terms" name="terms" required>
+    <label for="terms">I accept the <a href="#" onclick="return false;">Terms of Service</a> and <a href="#" onclick="return false;">Privacy Policy</a>. <span aria-label="required">*</span></label>
+  </div>
+  <div class="error-msg" id="termsError" role="alert"></div>
+  <div class="success-msg" id="successMsg" role="status">Registration successful! You can now log in.</div>
+  <div class="actions">
+    <button type="submit">Register</button>
+  </div>
+</div>
+</form>
+</div>
+</main>
+<script>
+(function() {
+  var form = document.getElementById('regForm');
+  var fields = {
+    username: document.getElementById('username'),
+    email: document.getElementById('email'),
+    dob: document.getElementById('dob'),
+    password: document.getElementById('password'),
+    confirmPassword: document.getElementById('confirmPassword'),
+    terms: document.getElementById('terms')
+  };
+  var errors = {
+    username: document.getElementById('usernameError'),
+    email: document.getElementById('emailError'),
+    dob: document.getElementById('dobError'),
+    password: document.getElementById('passwordError'),
+    confirmPassword: document.getElementById('confirmPasswordError'),
+    terms: document.getElementById('termsError')
+  };
+  var successMsg = document.getElementById('successMsg');
+
+  function getRegisteredUsers() {
+    try {
+      var data = localStorage.getItem('_registered_users');
+      return data ? JSON.parse(data) : [];
+    } catch(e) {
+      return [];
+    }
+  }
+
+  function saveUser(username, email) {
+    var users = getRegisteredUsers();
+    users.push({ username: username.toLowerCase(), email: email.toLowerCase(), ts: Date.now() });
+    localStorage.setItem('_registered_users', JSON.stringify(users));
+  }
+
+  function isDuplicate(username, email) {
+    var users = getRegisteredUsers();
+    var u = username.toLowerCase();
+    var e = email.toLowerCase();
+    return users.some(function(user) {
+      return user.username === u || user.email === e;
+    });
+  }
+
+  function setError(fieldId, msg) {
+    if (errors[fieldId]) {
+      errors[fieldId].textContent = msg;
+    }
+    if (fields[fieldId]) {
+      fields[fieldId].classList.add('invalid');
+    }
+  }
+
+  function clearError(fieldId) {
+    if (errors[fieldId]) {
+      errors[fieldId].textContent = '';
+    }
+    if (fields[fieldId]) {
+      fields[fieldId].classList.remove('invalid');
+    }
+  }
+
+  function clearAllErrors() {
+    Object.keys(errors).forEach(function(k) { clearError(k); });
+    successMsg.classList.remove('visible');
+  }
+
+  function validate() {
+    var valid = true;
+    clearAllErrors();
+
+    var username = fields.username.value.trim();
+    if (!username) {
+      setError('username', 'Username is required.');
+      valid = false;
+    } else if (username.length < 3) {
+      setError('username', 'Username must be at least 3 characters.');
+      valid = false;
+    } else if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+      setError('username', 'Username may only contain letters, numbers, and underscores.');
+      valid = false;
+    }
+
+    var email = fields.email.value.trim();
+    if (!email) {
+      setError('email', 'Email address is required.');
+      valid = false;
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setError('email', 'Please enter a valid email address.');
+      valid = false;
+    }
+
+    var dob = fields.dob.value;
+    if (dob) {
+      var dobDate = new Date(dob);
+      var today = new Date();
+      today.setHours(0,0,0,0);
+      if (dobDate > today) {
+        setError('dob', 'Date of birth cannot be in the future.');
+        valid = false;
+      }
+    }
+
+    var password = fields.password.value;
+    if (!password) {
+      setError('password', 'Password is required.');
+      valid = false;
+    } else if (password.length < 8) {
+      setError('password', 'Password must be at least 8 characters.');
+      valid = false;
+    }
+
+    var confirmPassword = fields.confirmPassword.value;
+    if (!confirmPassword) {
+      setError('confirmPassword', 'Please confirm your password.');
+      valid = false;
+    } else if (password !== confirmPassword) {
+      setError('confirmPassword', 'Passwords do not match.');
+      valid = false;
+    }
+
+    if (!fields.terms.checked) {
+      setError('terms', 'You must accept the Terms of Service.');
+      valid = false;
+    }
+
+    if (valid && isDuplicate(username, email)) {
+      setError('username', 'This username or email is already registered.');
+      setError('email', 'This username or email is already registered.');
+      valid = false;
+    }
+
+    return valid;
+  }
+
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+    if (validate()) {
+      saveUser(fields.username.value.trim(), fields.email.value.trim());
+      successMsg.classList.add('visible');
+      form.reset();
+      setTimeout(function() { successMsg.classList.remove('visible'); }, 5000);
+    }
+  });
+
+  // Toggle password visibility
+  document.querySelectorAll('.toggle-pw').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var targetId = this.getAttribute('data-target');
+      var input = document.getElementById(targetId);
+      if (input.type === 'password') {
+        input.type = 'text';
+        this.textContent = 'Hide';
+        this.setAttribute('aria-label', 'Hide password');
+      } else {
+        input.type = 'password';
+        this.textContent = 'Show';
+        this.setAttribute('aria-label', 'Show password');
+      }
+    });
+  });
+
+  // Clear errors on input
+  Object.keys(fields).forEach(function(key) {
+    if (key === 'terms') {
+      fields[key].addEventListener('change', function() { clearError(key); });
+    } else {
+      fields[key].addEventListener('input', function() { clearError(key); });
+    }
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,52 @@
+{
+  "commit": "de97b4a",
+  "successDefinition": "reference train GREEN, final train GREEN, and TDD hidden validation improves over Direct",
+  "models": [
+    {
+      "model": "glm-5.3",
+      "attempts": 3,
+      "successfulAttempts": 3,
+      "successRate": 1,
+      "averagesOverSuccessfulAttempts": {
+        "modelDurationMs": 380318,
+        "requests": 5.3333333333,
+        "inputTokens": 34981.3333333333,
+        "outputTokens": 16268,
+        "totalTokens": 51249.3333333333,
+        "directValidationPassed": 21.6666666667,
+        "tddValidationPassed": 35.3333333333,
+        "validationImprovement": 13.6666666667,
+        "directVisualPassed": 7.6666666667,
+        "tddVisualPassed": 8
+      },
+      "runs": [
+        { "runId": "20260911T010159Z-gui-cc6f1f03", "outcome": "GREEN", "referenceTrain": "12/12", "initialTrain": "1/12", "finalTrain": "12/12", "testRepairs": 2, "implementationRepairs": 2, "directValidation": "13/36", "tddValidation": "36/36", "modelDurationMs": 458381, "requests": 6, "inputTokens": 43448, "outputTokens": 19297, "totalTokens": 62745 },
+        { "runId": "20260911T012843Z-gui-1a986fde", "outcome": "GREEN", "referenceTrain": "10/10", "initialTrain": "4/10", "finalTrain": "10/10", "testRepairs": 1, "implementationRepairs": 1, "directValidation": "27/36", "tddValidation": "36/36", "modelDurationMs": 303543, "requests": 4, "inputTokens": 22146, "outputTokens": 12955, "totalTokens": 35101 },
+        { "runId": "20260911T012902Z-gui-ef6d053c", "outcome": "GREEN", "referenceTrain": "9/9", "initialTrain": "1/9", "finalTrain": "9/9", "testRepairs": 2, "implementationRepairs": 2, "directValidation": "25/36", "tddValidation": "34/36", "modelDurationMs": 379030, "requests": 6, "inputTokens": 39350, "outputTokens": 16552, "totalTokens": 55902 }
+      ]
+    },
+    {
+      "model": "qwen3.7-max",
+      "attempts": 3,
+      "successfulAttempts": 2,
+      "successRate": 0.6666666667,
+      "averagesOverSuccessfulAttempts": {
+        "modelDurationMs": 172956.5,
+        "requests": 3.5,
+        "inputTokens": 23097,
+        "outputTokens": 10800,
+        "totalTokens": 33897,
+        "directValidationPassed": 8.5,
+        "tddValidationPassed": 31.5,
+        "validationImprovement": 23,
+        "directVisualPassed": 6,
+        "tddVisualPassed": 8
+      },
+      "runs": [
+        { "runId": "20260911T010217Z-gui-578feca4", "outcome": "GREEN", "referenceTrain": "36/36", "initialTrain": "15/36", "finalTrain": "36/36", "testRepairs": 1, "implementationRepairs": 1, "directValidation": "8/36", "tddValidation": "36/36", "modelDurationMs": 197108, "requests": 4, "inputTokens": 27528, "outputTokens": 13051, "totalTokens": 40579 },
+        { "runId": "20260911T011238Z-gui-96de088c", "outcome": "GREEN", "referenceTrain": "33/33", "initialTrain": "11/33", "finalTrain": "33/33", "testRepairs": 0, "implementationRepairs": 1, "directValidation": "9/36", "tddValidation": "27/36", "modelDurationMs": 148805, "requests": 3, "inputTokens": 18666, "outputTokens": 8549, "totalTokens": 27215 },
+        { "runId": "20260911T011249Z-gui-074dbcc9", "outcome": "LIMIT_REACHED", "referenceTrain": "43/43", "initialTrain": "TIMEOUT", "finalTrain": "42/43", "testRepairs": 1, "implementationRepairs": 2, "directValidation": "8/36", "tddValidation": "33/36", "modelDurationMs": 739661, "requests": 13, "inputTokens": 135693, "outputTokens": 46176, "totalTokens": 181869 }
+      ]
+    }
+  ]
+}

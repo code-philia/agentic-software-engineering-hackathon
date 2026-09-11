@@ -7,6 +7,7 @@ import { z } from "zod";
 
 export const supportedModels = [
   "qwen3.8-max",
+  "qwen3.7-max",
   "qwen3.7-plus",
   "qwen3.6-flash",
   "qwen3.6-plus",

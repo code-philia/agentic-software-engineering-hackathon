@@ -1,0 +1,154 @@
+{
+  "outcome": "GENERATION_ERROR",
+  "runId": "20260911T015948Z-gui-6fa637fb",
+  "runRoot": "/private/tmp/lab02-final-02785ac-q37plus/Lab/Lab02/runs/20260911T015948Z-gui-6fa637fb",
+  "workspaceRoot": "/private/tmp/lab02-final-02785ac-q37plus/Lab/Lab02/workspace/gui",
+  "modelConfiguration": {
+    "envFile": ".env",
+    "model": "qwen3.7-plus",
+    "inferencePolicy": {
+      "id": "classroom-model-policy-v2",
+      "model": "qwen3.7-plus",
+      "mode": "non-thinking",
+      "temperature": 0,
+      "providerData": {
+        "enable_thinking": false
+      }
+    }
+  },
+  "modelPerformance": {
+    "model": "qwen3.7-plus",
+    "stages": 5,
+    "durationMs": 416633,
+    "requests": 11,
+    "inputTokens": 131680,
+    "outputTokens": 36192,
+    "totalTokens": 167872,
+    "calls": [
+      {
+        "stage": "direct",
+        "durationMs": 40411,
+        "usage": {
+          "requests": 1,
+          "inputTokens": 910,
+          "outputTokens": 3493,
+          "totalTokens": 4403,
+          "requestUsage": [
+            {
+              "inputTokens": 910,
+              "outputTokens": 3493,
+              "totalTokens": 4403
+            }
+          ]
+        },
+        "status": "completed"
+      },
+      {
+        "stage": "test_generation",
+        "durationMs": 38943,
+        "usage": {
+          "requests": 1,
+          "inputTokens": 3752,
+          "outputTokens": 3183,
+          "totalTokens": 6935,
+          "requestUsage": [
+            {
+              "inputTokens": 3752,
+              "outputTokens": 3183,
+              "totalTokens": 6935
+            }
+          ]
+        },
+        "status": "completed"
+      },
+      {
+        "stage": "test_repair",
+        "durationMs": 38923,
+        "usage": {
+          "requests": 1,
+          "inputTokens": 8132,
+          "outputTokens": 3278,
+          "totalTokens": 11410,
+          "requestUsage": [
+            {
+              "inputTokens": 8132,
+              "outputTokens": 3278,
+              "totalTokens": 11410
+            }
+          ]
+        },
+        "status": "completed"
+      },
+      {
+        "stage": "test_repair",
+        "durationMs": 76743,
+        "usage": {
+          "requests": 2,
+          "inputTokens": 19705,
+          "outputTokens": 6558,
+          "totalTokens": 26263,
+          "requestUsage": [
+            {
+              "inputTokens": 8187,
+              "outputTokens": 3278,
+              "totalTokens": 11465
+            },
+            {
+              "inputTokens": 11518,
+              "outputTokens": 3280,
+              "totalTokens": 14798
+            }
+          ]
+        },
+        "status": "completed"
+      },
+      {
+        "stage": "test_repair",
+        "durationMs": 221613,
+        "usage": {
+          "requests": 6,
+          "inputTokens": 99181,
+          "outputTokens": 19680,
+          "totalTokens": 118861,
+          "requestUsage": [
+            {
+              "inputTokens": 8189,
+              "outputTokens": 3280,
+              "totalTokens": 11469
+            },
+            {
+              "inputTokens": 11522,
+              "outputTokens": 3280,
+              "totalTokens": 14802
+            },
+            {
+              "inputTokens": 14855,
+              "outputTokens": 3280,
+              "totalTokens": 18135
+            },
+            {
+              "inputTokens": 18188,
+              "outputTokens": 3280,
+              "totalTokens": 21468
+            },
+            {
+              "inputTokens": 21549,
+              "outputTokens": 3280,
+              "totalTokens": 24829
+            },
+            {
+              "inputTokens": 24878,
+              "outputTokens": 3280,
+              "totalTokens": 28158
+            }
+          ]
+        },
+        "status": "failed"
+      }
+    ]
+  },
+  "error": {
+    "name": "GenerationArtifactError",
+    "message": "Max turns (6) exceeded"
+  }
+}

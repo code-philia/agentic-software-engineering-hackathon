@@ -5,6 +5,7 @@ import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 
 import {
+  implementationRepairInstructions,
   implementationRepairLimit,
   repairToolUseBehavior,
   RepairWorkspace,
@@ -35,41 +36,61 @@ describe("GUI prompt and repair tuning", () => {
     expect(contract).not.toContain("375 CSS pixels");
   });
 
-  it("requires broad state-lifecycle coverage without prescribing storage internals", () => {
+  it("requests focused GUI coverage without prescribing test count or storage internals", () => {
     const instructions = testAuthoringInstructions("gui");
 
-    expect(instructions).toContain("complete state lifecycle");
-    expect(instructions).toContain("adding a second distinct account preserves the first");
-    expect(instructions).toContain("rejection atomicity");
-    expect(instructions).toContain("removes their stale explanations and invalid state");
-    expect(instructions).toContain("without depending on a particular storage key or object schema");
+    expect(instructions).toContain("coverage quality and reliability matter more than test count");
+    expect(instructions).toContain("rejected attempts reserve nothing");
+    expect(instructions).toContain("clears stale invalid state");
+    expect(instructions).toContain("without assuming a key or schema");
     expect(instructions).toContain("specification-discovery stage");
-    expect(instructions).toContain("exactly 8 top-level Playwright tests");
-    expect(instructions).toContain("at most 320 source lines");
-    expect(instructions).toContain("The required eight executable scenarios");
-    expect(instructions).toContain("role=alert summary");
-    expect(instructions).toContain("Permanent hint text and a stable empty error-node ID may remain");
-    expect(instructions).toContain("a missing type is valid HTML text-input behavior");
-    expect(instructions).toContain("explicitly call check() or uncheck()");
-    expect(instructions).toContain("getByRole('checkbox', { name: /terms/i })");
-    expect(instructions).toContain("backgroundColor, not its text color");
-    expect(instructions).toContain("clearing storage between these boundary rows is preferred");
-    expect(instructions).toContain("submittedUsername.trim() ('MiXeD_1')");
-    expect(instructions).toContain("el.labels?.[0]");
-    expect(instructions).toContain("Do not search for an ancestor label");
-    expect(instructions).toContain("form itself may be transparent inside the white panel");
+    expect(instructions).toContain("Aim for roughly 220 source lines or fewer");
+    expect(instructions).toContain("correct executable suite over an arbitrary test or line count");
+    expect(instructions).not.toContain("exactly 8 top-level Playwright tests");
+    expect(instructions).not.toContain("required eight executable scenarios");
+    expect(instructions).toContain("Use the supplied resetRegistration helper");
+    expect(instructions).toContain("Use the supplied controls, uniqueRegistration");
+    expect(instructions).toContain("do not call resetRegistration or localStorage.clear");
+    expect(instructions).toContain("row labels");
+    expect(instructions).toContain("expectFirstInvalid, expectRejection");
+    expect(instructions).toContain("create.*account");
+    expect(instructions).toContain("set confirmation to that same value");
+    expect(instructions).toContain("Presentation and responsive layout");
+    expect(instructions).toContain("full-width dark navy-blue service header");
+    expect(instructions).toContain("related fields sharing rows");
+    expect(instructions).toContain("do not assert exact RGB values");
+    expect(instructions).toContain("it has no password property");
+    expect(instructions).toContain("Never pass an optional or undefined value to toContain");
+    expect(instructions).toContain("define const c = controls(page) in that same scope");
+    expect(instructions).toContain("one-letter alphabetic final label is valid");
+    expect(instructions).toContain("form may be transparent inside the requested white panel");
+    expect(instructions).toContain("do not match serialized RGB text");
   });
 
   it("forbids the optional native-date false rejection pattern", () => {
     const instructions = testAuthoringInstructions("gui");
 
     expect(instructions).toContain("Date of birth is optional");
-    expect(instructions).toContain("that empty value is a valid submission");
-    expect(instructions).toContain("otherwise omit that case entirely");
-    expect(instructions).toContain("/^password(?!.*confirm)/i");
+    expect(instructions).toContain("a real Gregorian date and an omitted date");
+    expect(instructions).toContain("Never put an invalid date in fillRegistration");
+    expect(instructions).toContain("A password-confirmation mismatch belongs to confirmPassword");
+    expect(instructions).toContain("fillRegistration keeps all companion fields valid");
+    expect(instructions).toContain("use await expectFirstInvalid(page)");
   });
 
-  it("ends the repair agent from the real train-test tool output when tests turn green", async () => {
+  it("gives GUI repair an explicit coherent policy without changing Direct", () => {
+    const instructions = implementationRepairInstructions(
+      "gui",
+      "Write one index.html file.",
+    );
+
+    expect(instructions).toContain("Password1 and Abcdefgh1 are 9 characters");
+    expect(instructions).toContain("Compare stored usernames case-insensitively");
+    expect(instructions).toContain("visible field explanations through aria-describedby");
+    expect(instructions).toContain("never store passwords");
+  });
+
+  it("ends each model call after one implementation write so the harness can run tests", async () => {
     const directory = await mkdtemp(join(tmpdir(), "lab02-repair-green-"));
     temporaryDirectories.push(directory);
     const implementationPath = join(directory, "register.ts");
@@ -91,7 +112,7 @@ describe("GUI prompt and repair tuning", () => {
         output: "passed",
       }),
     });
-    await workspace.writeImplementation(
+    const writeResult = await workspace.writeImplementation(
       implementationPath,
       "export default () => new Response(null, { status: 201 });",
     );
@@ -107,7 +128,15 @@ describe("GUI prompt and repair tuning", () => {
     });
     expect(
       await invoke({}, [
-        { type: "function_output", output: toolOutput },
+        { type: "function_output", output: writeResult },
+      ]),
+    ).toMatchObject({ isFinalOutput: true });
+    expect(
+      await invoke({}, [
+        {
+          type: "function_output",
+          output: { accepted: false, message: "unchanged" },
+        },
       ]),
     ).toMatchObject({ isFinalOutput: true });
   });
@@ -152,7 +181,92 @@ describe("GUI prompt and repair tuning", () => {
     });
   });
 
-  it("allows four implementation writes by default and rejects a fifth", async () => {
+  it("rejects an unchanged implementation without consuming a repair", async () => {
+    const directory = await mkdtemp(join(tmpdir(), "lab02-repair-unchanged-"));
+    temporaryDirectories.push(directory);
+    const implementationPath = join(directory, "index.html");
+    const current = "<html><body>current</body></html>";
+    const workspace = new RepairWorkspace({
+      scenario: "gui",
+      publicBrief: "Register an account.",
+      implementationContract: "Write one index.html file.",
+      implementationPath,
+      currentImplementation: current,
+      frozenTrainTests: "",
+      initialTestResult: {
+        status: "RED",
+        summary: "5/10 train tests passed.",
+        output: "failed",
+      },
+      runTrainTests: async () => ({
+        status: "RED",
+        summary: "Still failing.",
+        output: "failed",
+      }),
+    });
+
+    await expect(
+      workspace.writeImplementation(implementationPath, `${current}\n`),
+    ).resolves.toMatchObject({
+      accepted: false,
+      message: expect.stringContaining("5/10 train tests passed"),
+    });
+    await expect(
+      workspace.writeImplementation(
+        implementationPath,
+        `\`\`\`html\n${current}\n\`\`\``,
+      ),
+    ).resolves.toMatchObject({
+      accepted: false,
+      message: expect.stringContaining("unchanged"),
+    });
+    await expect(
+      workspace.writeImplementation(join(directory, "wrong.html"), "not html"),
+    ).resolves.toMatchObject({
+      accepted: false,
+      message: expect.stringContaining("may only write"),
+    });
+    expect(workspace.repairs).toBe(0);
+  });
+
+  it("stores the canonical implementation rather than a model code fence", async () => {
+    const directory = await mkdtemp(join(tmpdir(), "lab02-repair-fence-"));
+    temporaryDirectories.push(directory);
+    const implementationPath = join(directory, "index.html");
+    const workspace = new RepairWorkspace({
+      scenario: "gui",
+      publicBrief: "Register an account.",
+      implementationContract: "Write one index.html file.",
+      implementationPath,
+      currentImplementation: "<html><body>current</body></html>",
+      frozenTrainTests: "",
+      initialTestResult: {
+        status: "RED",
+        summary: "One behavior is missing.",
+        output: "failed",
+      },
+      runTrainTests: async () => ({
+        status: "GREEN",
+        summary: "All train tests passed.",
+        output: "passed",
+      }),
+    });
+
+    await expect(
+      workspace.writeImplementation(
+        implementationPath,
+        "```html\n<html><body>changed</body></html>\n```",
+      ),
+    ).resolves.toMatchObject({ accepted: true });
+    expect(workspace.currentImplementation).toBe(
+      "<html><body>changed</body></html>\n",
+    );
+    await expect(readFile(implementationPath, "utf8")).resolves.toBe(
+      "<html><body>changed</body></html>\n",
+    );
+  });
+
+  it("allows five GUI implementation writes by default and rejects a sixth", async () => {
     const directory = await mkdtemp(join(tmpdir(), "lab02-repair-policy-"));
     temporaryDirectories.push(directory);
     const implementationPath = join(directory, "index.html");
@@ -176,8 +290,8 @@ describe("GUI prompt and repair tuning", () => {
     });
 
     expect(implementationRepairLimit("api")).toBe(3);
-    expect(implementationRepairLimit("gui")).toBe(4);
-    for (let repair = 1; repair <= 4; repair += 1) {
+    expect(implementationRepairLimit("gui")).toBe(5);
+    for (let repair = 1; repair <= 5; repair += 1) {
       await expect(
         workspace.writeImplementation(
           implementationPath,
@@ -188,7 +302,7 @@ describe("GUI prompt and repair tuning", () => {
     await expect(
       workspace.writeImplementation(
         implementationPath,
-        "<html data-repair=\"5\"></html>",
+        "<html data-repair=\"6\"></html>",
       ),
     ).resolves.toMatchObject({ accepted: false });
   });

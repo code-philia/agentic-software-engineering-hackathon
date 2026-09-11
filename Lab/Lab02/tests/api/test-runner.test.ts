@@ -235,6 +235,40 @@ describe("generated GUI train-test runner", () => {
     });
   });
 
+  it("installs and executes the teacher-owned GUI test support", async () => {
+    const outputRoot = await localTemporaryDirectory();
+    const workspace = await createRunWorkspace("gui", {
+      runsRoot: join(outputRoot, "runs"),
+      workspaceRoot: join(outputRoot, "workspace"),
+    });
+    await writeFile(
+      workspace.trainTests,
+      `import { expect, test } from "@playwright/test";
+      import { fillRegistration, resetRegistration, storageCorpus, submitRegistration, successFeedback } from "./course-gui-test-support.js";
+      test("uses stable course helpers", async ({ page }) => {
+        await resetRegistration(page);
+        await fillRegistration(page, { username: "Helper_User", email: "Helper@Example.COM" });
+        await submitRegistration(page);
+        await expect(successFeedback(page)).toBeVisible();
+        expect(JSON.stringify(await storageCorpus(page))).toContain("Helper_User");
+      });\n`,
+      "utf8",
+    );
+
+    await expect(
+      runGuiTrainTests({
+        htmlPath: join(
+          process.cwd(),
+          "tests/validation/fixtures/gui-good.html",
+        ),
+        testPath: workspace.trainTests,
+        reportPath: join(workspace.testOutputDirectory, "support.json"),
+        rawOutputPath: join(workspace.testOutputDirectory, "support.txt"),
+        browserOutputPath: join(workspace.testOutputDirectory, "support-output"),
+      }),
+    ).resolves.toMatchObject({ status: "GREEN", total: 1, passed: 1 });
+  });
+
   it("excludes quarantined GUI tests by their reported names", async () => {
     const outputRoot = await localTemporaryDirectory();
     const workspace = await createRunWorkspace("gui", {

@@ -17,6 +17,7 @@ export interface AgentFileWorkspaceOptions {
   readonly allowedPath: string;
   readonly maxWrites?: number;
   readonly writeLabel: string;
+  readonly rejectUnchangedFrom?: string;
   readonly onWrite?: (write: number) => Promise<void> | void;
 }
 
@@ -26,6 +27,7 @@ export class AgentFileWorkspace {
   readonly #artifactKind: ArtifactKind;
   readonly #maxWrites: number;
   readonly #writeLabel: string;
+  readonly #rejectUnchangedFrom: string | undefined;
   readonly #onWrite: ((write: number) => Promise<void> | void) | undefined;
   #writes = 0;
 
@@ -34,6 +36,7 @@ export class AgentFileWorkspace {
     this.#artifactKind = options.artifactKind;
     this.#maxWrites = options.maxWrites ?? 1;
     this.#writeLabel = options.writeLabel;
+    this.#rejectUnchangedFrom = options.rejectUnchangedFrom;
     this.#onWrite = options.onWrite;
   }
 
@@ -60,6 +63,15 @@ export class AgentFileWorkspace {
     }
 
     const source = extractArtifact(content, this.#artifactKind);
+    if (
+      this.#rejectUnchangedFrom !== undefined &&
+      source.trim() === this.#rejectUnchangedFrom.trim()
+    ) {
+      return {
+        accepted: false,
+        message: `Write rejected because the ${this.#writeLabel} is unchanged. Use the supplied failure feedback to make a substantive correction before writing again.`,
+      };
+    }
     const directory = dirname(this.#allowedPath);
     const temporaryPath = resolve(directory, `.${basename(this.#allowedPath)}.next`);
     await mkdir(directory, { recursive: true });

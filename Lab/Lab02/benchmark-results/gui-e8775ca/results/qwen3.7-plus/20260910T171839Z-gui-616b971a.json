@@ -1,0 +1,721 @@
+{
+  "outcome": "LIMIT_REACHED",
+  "runId": "20260910T171839Z-gui-616b971a",
+  "runRoot": "/private/tmp/lab02-gui-bench-e8775ca/qwen3.7-plus/Lab/Lab02/runs/20260910T171839Z-gui-616b971a",
+  "workspaceRoot": "/private/tmp/lab02-gui-bench-e8775ca/qwen3.7-plus/Lab/Lab02/workspace/gui",
+  "directValidation": {
+    "passed": 7,
+    "total": 36,
+    "durationMs": 9081,
+    "categories": [
+      {
+        "name": "Structure and accessibility",
+        "passed": 3,
+        "total": 9
+      },
+      {
+        "name": "Form validation",
+        "passed": 0,
+        "total": 9
+      },
+      {
+        "name": "Interaction and state",
+        "passed": 0,
+        "total": 10
+      },
+      {
+        "name": "Stable visual requirements",
+        "passed": 4,
+        "total": 8
+      }
+    ],
+    "checks": [
+      {
+        "name": "exposes the registration purpose with semantic headings and form",
+        "category": "Structure and accessibility",
+        "passed": true
+      },
+      {
+        "name": "associates accessible labels with every data field",
+        "category": "Structure and accessibility",
+        "passed": false
+      },
+      {
+        "name": "uses suitable input types",
+        "category": "Structure and accessibility",
+        "passed": false
+      },
+      {
+        "name": "provides useful autocomplete metadata",
+        "category": "Structure and accessibility",
+        "passed": true
+      },
+      {
+        "name": "provides accessible terms and password visibility controls",
+        "category": "Structure and accessibility",
+        "passed": false
+      },
+      {
+        "name": "associates visible explanations with invalid controls",
+        "category": "Structure and accessibility",
+        "passed": false
+      },
+      {
+        "name": "exposes important feedback through live or alert semantics",
+        "category": "Structure and accessibility",
+        "passed": false
+      },
+      {
+        "name": "shows an error summary when submission has problems",
+        "category": "Structure and accessibility",
+        "passed": true
+      },
+      {
+        "name": "focuses the first invalid control after submission",
+        "category": "Structure and accessibility",
+        "passed": false
+      },
+      {
+        "name": "reports all missing requirements in one submission",
+        "category": "Form validation",
+        "passed": false
+      },
+      {
+        "name": "accepts username length and character boundaries",
+        "category": "Form validation",
+        "passed": false
+      },
+      {
+        "name": "rejects usernames outside the public format",
+        "category": "Form validation",
+        "passed": false
+      },
+      {
+        "name": "rejects clearly malformed email addresses",
+        "category": "Form validation",
+        "passed": false
+      },
+      {
+        "name": "enforces password length, character rules, and exact confirmation",
+        "category": "Form validation",
+        "passed": false
+      },
+      {
+        "name": "accepts a real optional date and requires terms",
+        "category": "Form validation",
+        "passed": false
+      },
+      {
+        "name": "trims and normalizes identity input",
+        "category": "Form validation",
+        "passed": false
+      },
+      {
+        "name": "accepts a password at the maximum length",
+        "category": "Form validation",
+        "passed": false
+      },
+      {
+        "name": "allows the optional date of birth to remain empty",
+        "category": "Form validation",
+        "passed": false
+      },
+      {
+        "name": "reveals and hides both password fields",
+        "category": "Interaction and state",
+        "passed": false
+      },
+      {
+        "name": "completes valid registration with readable success feedback",
+        "category": "Interaction and state",
+        "passed": false
+      },
+      {
+        "name": "saves normalized public details",
+        "category": "Interaction and state",
+        "passed": false
+      },
+      {
+        "name": "rejects a case-insensitive username duplicate after reload",
+        "category": "Interaction and state",
+        "passed": false
+      },
+      {
+        "name": "rejects a normalized email duplicate after reload",
+        "category": "Interaction and state",
+        "passed": false
+      },
+      {
+        "name": "does not reserve details from a rejected attempt",
+        "category": "Interaction and state",
+        "passed": false
+      },
+      {
+        "name": "never stores either password field",
+        "category": "Interaction and state",
+        "passed": false
+      },
+      {
+        "name": "updates the password visibility control's accessible action",
+        "category": "Interaction and state",
+        "passed": false
+      },
+      {
+        "name": "clears stale field errors after corrected submission",
+        "category": "Interaction and state",
+        "passed": false
+      },
+      {
+        "name": "remembers multiple distinct successful accounts",
+        "category": "Interaction and state",
+        "passed": false
+      },
+      {
+        "name": "presents a full-width dark-blue header",
+        "category": "Stable visual requirements",
+        "passed": false
+      },
+      {
+        "name": "uses a pale background around a centered white panel",
+        "category": "Stable visual requirements",
+        "passed": true
+      },
+      {
+        "name": "uses a restrained orange accent and primary action",
+        "category": "Stable visual requirements",
+        "passed": false
+      },
+      {
+        "name": "provides a clearly visible keyboard focus indicator",
+        "category": "Stable visual requirements",
+        "passed": true
+      },
+      {
+        "name": "shows error and success states with text rather than color alone",
+        "category": "Stable visual requirements",
+        "passed": false
+      },
+      {
+        "name": "remains operable without horizontal scrolling at 375 pixels",
+        "category": "Stable visual requirements",
+        "passed": true
+      },
+      {
+        "name": "positions labels above their text controls",
+        "category": "Stable visual requirements",
+        "passed": false
+      },
+      {
+        "name": "changes related desktop fields to one column on a narrow screen",
+        "category": "Stable visual requirements",
+        "passed": true
+      }
+    ]
+  },
+  "tddValidation": {
+    "passed": 9,
+    "total": 36,
+    "durationMs": 6588,
+    "categories": [
+      {
+        "name": "Structure and accessibility",
+        "passed": 5,
+        "total": 9
+      },
+      {
+        "name": "Form validation",
+        "passed": 0,
+        "total": 9
+      },
+      {
+        "name": "Interaction and state",
+        "passed": 0,
+        "total": 10
+      },
+      {
+        "name": "Stable visual requirements",
+        "passed": 4,
+        "total": 8
+      }
+    ],
+    "checks": [
+      {
+        "name": "exposes the registration purpose with semantic headings and form",
+        "category": "Structure and accessibility",
+        "passed": true
+      },
+      {
+        "name": "associates accessible labels with every data field",
+        "category": "Structure and accessibility",
+        "passed": false
+      },
+      {
+        "name": "uses suitable input types",
+        "category": "Structure and accessibility",
+        "passed": false
+      },
+      {
+        "name": "provides useful autocomplete metadata",
+        "category": "Structure and accessibility",
+        "passed": true
+      },
+      {
+        "name": "provides accessible terms and password visibility controls",
+        "category": "Structure and accessibility",
+        "passed": false
+      },
+      {
+        "name": "associates visible explanations with invalid controls",
+        "category": "Structure and accessibility",
+        "passed": false
+      },
+      {
+        "name": "exposes important feedback through live or alert semantics",
+        "category": "Structure and accessibility",
+        "passed": true
+      },
+      {
+        "name": "shows an error summary when submission has problems",
+        "category": "Structure and accessibility",
+        "passed": true
+      },
+      {
+        "name": "focuses the first invalid control after submission",
+        "category": "Structure and accessibility",
+        "passed": true
+      },
+      {
+        "name": "reports all missing requirements in one submission",
+        "category": "Form validation",
+        "passed": false
+      },
+      {
+        "name": "accepts username length and character boundaries",
+        "category": "Form validation",
+        "passed": false
+      },
+      {
+        "name": "rejects usernames outside the public format",
+        "category": "Form validation",
+        "passed": false
+      },
+      {
+        "name": "rejects clearly malformed email addresses",
+        "category": "Form validation",
+        "passed": false
+      },
+      {
+        "name": "enforces password length, character rules, and exact confirmation",
+        "category": "Form validation",
+        "passed": false
+      },
+      {
+        "name": "accepts a real optional date and requires terms",
+        "category": "Form validation",
+        "passed": false
+      },
+      {
+        "name": "trims and normalizes identity input",
+        "category": "Form validation",
+        "passed": false
+      },
+      {
+        "name": "accepts a password at the maximum length",
+        "category": "Form validation",
+        "passed": false
+      },
+      {
+        "name": "allows the optional date of birth to remain empty",
+        "category": "Form validation",
+        "passed": false
+      },
+      {
+        "name": "reveals and hides both password fields",
+        "category": "Interaction and state",
+        "passed": false
+      },
+      {
+        "name": "completes valid registration with readable success feedback",
+        "category": "Interaction and state",
+        "passed": false
+      },
+      {
+        "name": "saves normalized public details",
+        "category": "Interaction and state",
+        "passed": false
+      },
+      {
+        "name": "rejects a case-insensitive username duplicate after reload",
+        "category": "Interaction and state",
+        "passed": false
+      },
+      {
+        "name": "rejects a normalized email duplicate after reload",
+        "category": "Interaction and state",
+        "passed": false
+      },
+      {
+        "name": "does not reserve details from a rejected attempt",
+        "category": "Interaction and state",
+        "passed": false
+      },
+      {
+        "name": "never stores either password field",
+        "category": "Interaction and state",
+        "passed": false
+      },
+      {
+        "name": "updates the password visibility control's accessible action",
+        "category": "Interaction and state",
+        "passed": false
+      },
+      {
+        "name": "clears stale field errors after corrected submission",
+        "category": "Interaction and state",
+        "passed": false
+      },
+      {
+        "name": "remembers multiple distinct successful accounts",
+        "category": "Interaction and state",
+        "passed": false
+      },
+      {
+        "name": "presents a full-width dark-blue header",
+        "category": "Stable visual requirements",
+        "passed": false
+      },
+      {
+        "name": "uses a pale background around a centered white panel",
+        "category": "Stable visual requirements",
+        "passed": true
+      },
+      {
+        "name": "uses a restrained orange accent and primary action",
+        "category": "Stable visual requirements",
+        "passed": false
+      },
+      {
+        "name": "provides a clearly visible keyboard focus indicator",
+        "category": "Stable visual requirements",
+        "passed": true
+      },
+      {
+        "name": "shows error and success states with text rather than color alone",
+        "category": "Stable visual requirements",
+        "passed": false
+      },
+      {
+        "name": "remains operable without horizontal scrolling at 375 pixels",
+        "category": "Stable visual requirements",
+        "passed": true
+      },
+      {
+        "name": "positions labels above their text controls",
+        "category": "Stable visual requirements",
+        "passed": false
+      },
+      {
+        "name": "changes related desktop fields to one column on a narrow screen",
+        "category": "Stable visual requirements",
+        "passed": true
+      }
+    ]
+  },
+  "referenceTrainResult": {
+    "status": "GREEN",
+    "summary": "14/14 train tests passed.",
+    "total": 14,
+    "passed": 14,
+    "failed": 0,
+    "durationMs": 5286,
+    "failures": []
+  },
+  "initialTrainResult": {
+    "status": "RED",
+    "summary": "3/14 train tests passed.",
+    "total": 14,
+    "passed": 3,
+    "failed": 11,
+    "durationMs": 22609,
+    "failures": [
+      {
+        "name": "empty submission reports all required problems and focuses first invalid",
+        "message": "Error: expect(locator).toBeFocused() failed\nLocator:  getByLabel(/^username/i)\nExpected: focused\nReceived: inactive\nTimeout:  2000ms\nCall log:\n  - Expect \"toBeFocused\" getByLabel(/^username/i) with timeout 2000ms\n  - waiting for getByLabel(/^username/i)\n    21 × locator resolved to <input type=\"text\" required=\"\" id=\"username\" minlength=\"3\" maxlength=\"30\" name=\"username\" class=\"invalid\" autocomplete=\"username\" placeholder=\"Choose a username\" aria-describedby=\"usernameError\"/>\n       - unexpected value \"inactive\""
+      },
+      {
+        "name": "show/hide password toggles both inputs and updates accessible name",
+        "message": "Error: expect(received).toBe(expected) // Object.is equality\nExpected: \"text\"\nReceived: \"password\""
+      },
+      {
+        "name": "username boundaries",
+        "message": "Error: expect(locator).toBeVisible() failed\nLocator: locator('[role=\"alert\"]').filter({ hasText: /correct|problem|error|invalid|required/i }).first()\nExpected: visible\nTimeout: 2000ms\nError: element(s) not found\nCall log:\n  - Expect \"toBeVisible\" locator('[role=\"alert\"]').filter({ hasText: /correct|problem|error|invalid|required/i }).first() with timeout 2000ms\n  - waiting for locator('[role=\"alert\"]').filter({ hasText: /correct|problem|error|invalid|required/i }).first()"
+      },
+      {
+        "name": "email boundaries",
+        "message": "Error: expect(locator).toBeVisible() failed\nLocator: locator('[role=\"alert\"]').filter({ hasText: /correct|problem|error|invalid|required/i }).first()\nExpected: visible\nTimeout: 2000ms\nError: element(s) not found\nCall log:\n  - Expect \"toBeVisible\" locator('[role=\"alert\"]').filter({ hasText: /correct|problem|error|invalid|required/i }).first() with timeout 2000ms\n  - waiting for locator('[role=\"alert\"]').filter({ hasText: /correct|problem|error|invalid|required/i }).first()"
+      },
+      {
+        "name": "password boundaries",
+        "message": "Error: expect(locator).toBeVisible() failed\nLocator: locator('[role=\"alert\"]').filter({ hasText: /correct|problem|error|invalid|required/i }).first()\nExpected: visible\nTimeout: 2000ms\nError: element(s) not found\nCall log:\n  - Expect \"toBeVisible\" locator('[role=\"alert\"]').filter({ hasText: /correct|problem|error|invalid|required/i }).first() with timeout 2000ms\n  - waiting for locator('[role=\"alert\"]').filter({ hasText: /correct|problem|error|invalid|required/i }).first()"
+      },
+      {
+        "name": "password confirmation mismatch",
+        "message": "Error: locator.check: Clicking the checkbox did not change its state\nCall log:\n  - waiting for getByRole('checkbox', { name: /terms/i })\n    - locator resolved to <input id=\"terms\" required=\"\" name=\"terms\" type=\"checkbox\" aria-describedby=\"termsError\"/>\n  - attempting click action\n    - waiting for element to be visible, enabled and stable\n    - element is visible, enabled and stable\n    - scrolling into view if needed\n    - done scrolling\n    - performing click action\n    - click action done\n    - waiting for scheduled navigations to finish\n    - navigations have finished"
+      },
+      {
+        "name": "missing terms rejection",
+        "message": "Error: expect(locator).toBeVisible() failed\nLocator: locator('[role=\"alert\"]').filter({ hasText: /correct|problem|error|invalid|required/i }).first()\nExpected: visible\nTimeout: 2000ms\nError: element(s) not found\nCall log:\n  - Expect \"toBeVisible\" locator('[role=\"alert\"]').filter({ hasText: /correct|problem|error|invalid|required/i }).first() with timeout 2000ms\n  - waiting for locator('[role=\"alert\"]').filter({ hasText: /correct|problem|error|invalid|required/i }).first()"
+      },
+      {
+        "name": "successful registration stores trimmed username and lowercased email without passwords",
+        "message": "Error: expect(received).toContain(expected) // indexOf\nExpected substring: \"test@example.com\"\nReceived string:    \"[{\\\"username\\\":\\\"TestUser\\\",\\\"email\\\":\\\"TEST@Example.COM\\\",\\\"dob\\\":null,\\\"ts\\\":1789060819654}]\""
+      },
+      {
+        "name": "duplicate username rejected after reload",
+        "message": "Error: expect(locator).toBeVisible() failed\nLocator: locator('[role=\"alert\"]').filter({ hasText: /correct|problem|error|invalid|required/i }).first()\nExpected: visible\nTimeout: 2000ms\nError: element(s) not found\nCall log:\n  - Expect \"toBeVisible\" locator('[role=\"alert\"]').filter({ hasText: /correct|problem|error|invalid|required/i }).first() with timeout 2000ms\n  - waiting for locator('[role=\"alert\"]').filter({ hasText: /correct|problem|error|invalid|required/i }).first()"
+      },
+      {
+        "name": "duplicate email rejected after reload",
+        "message": "Error: expect(locator).toBeVisible() failed\nLocator: locator('[role=\"alert\"]').filter({ hasText: /correct|problem|error|invalid|required/i }).first()\nExpected: visible\nTimeout: 2000ms\nError: element(s) not found\nCall log:\n  - Expect \"toBeVisible\" locator('[role=\"alert\"]').filter({ hasText: /correct|problem|error|invalid|required/i }).first() with timeout 2000ms\n  - waiting for locator('[role=\"alert\"]').filter({ hasText: /correct|problem|error|invalid|required/i }).first()"
+      },
+      {
+        "name": "rejected attempt reserves nothing",
+        "message": "Error: expect(locator).toBeVisible() failed\nLocator: locator('[role=\"alert\"]').filter({ hasText: /correct|problem|error|invalid|required/i }).first()\nExpected: visible\nTimeout: 2000ms\nError: element(s) not found\nCall log:\n  - Expect \"toBeVisible\" locator('[role=\"alert\"]').filter({ hasText: /correct|problem|error|invalid|required/i }).first() with timeout 2000ms\n  - waiting for locator('[role=\"alert\"]').filter({ hasText: /correct|problem|error|invalid|required/i }).first()"
+      }
+    ]
+  },
+  "finalTrainResult": {
+    "status": "RED",
+    "summary": "11/14 train tests passed.",
+    "total": 14,
+    "passed": 11,
+    "failed": 3,
+    "durationMs": 9069,
+    "failures": [
+      {
+        "name": "username boundaries",
+        "message": "Error: expect(locator).toBeVisible() failed\nLocator:  locator('[role=\"status\"], [role=\"alert\"], [aria-live]').filter({ hasText: /success|account.{0,30}created|welcome/i }).last()\nExpected: visible\nReceived: hidden\nTimeout:  2000ms\nCall log:\n  - Expect \"toBeVisible\" locator('[role=\"status\"], [role=\"alert\"], [aria-live]').filter({ hasText: /success|account.{0,30}created|welcome/i }).last() with timeout 2000ms\n  - waiting for locator('[role=\"status\"], [role=\"alert\"], [aria-live]').filter({ hasText: /success|account.{0,30}created|welcome/i }).last()\n    21 × locator resolved to <div role=\"status\" id=\"successBanner\" aria-live=\"polite\" class=\"success-banner\">Registration successful! You can now log in.</div>\n       - unexpected value \"hidden\""
+      },
+      {
+        "name": "password boundaries",
+        "message": "Error: expect(locator).toBeVisible() failed\nLocator: locator('[role=\"alert\"]').filter({ hasText: /correct|problem|error|invalid|required/i }).first()\nExpected: visible\nTimeout: 2000ms\nError: element(s) not found\nCall log:\n  - Expect \"toBeVisible\" locator('[role=\"alert\"]').filter({ hasText: /correct|problem|error|invalid|required/i }).first() with timeout 2000ms\n  - waiting for locator('[role=\"alert\"]').filter({ hasText: /correct|problem|error|invalid|required/i }).first()"
+      },
+      {
+        "name": "password confirmation mismatch",
+        "message": "Error: locator.check: Clicking the checkbox did not change its state\nCall log:\n  - waiting for getByRole('checkbox', { name: /terms/i })\n    - locator resolved to <input id=\"terms\" name=\"terms\" type=\"checkbox\" aria-describedby=\"termsError\"/>\n  - attempting click action\n    - waiting for element to be visible, enabled and stable\n    - element is visible, enabled and stable\n    - scrolling into view if needed\n    - done scrolling\n    - performing click action\n    - click action done\n    - waiting for scheduled navigations to finish\n    - navigations have finished"
+      }
+    ]
+  },
+  "testRepairs": 0,
+  "repairs": 5,
+  "modelUsage": {
+    "direct": {
+      "requests": 1,
+      "inputTokens": 864,
+      "outputTokens": 3309,
+      "totalTokens": 4173,
+      "requestUsage": [
+        {
+          "inputTokens": 864,
+          "outputTokens": 3309,
+          "totalTokens": 4173
+        }
+      ]
+    },
+    "testGeneration": {
+      "requests": 1,
+      "inputTokens": 3168,
+      "outputTokens": 2568,
+      "totalTokens": 5736,
+      "requestUsage": [
+        {
+          "inputTokens": 3168,
+          "outputTokens": 2568,
+          "totalTokens": 5736
+        }
+      ]
+    },
+    "testRepairs": [],
+    "implementationRepair": {
+      "requests": 10,
+      "inputTokens": 277154,
+      "outputTokens": 18604,
+      "totalTokens": 295758,
+      "requestUsage": [
+        {
+          "inputTokens": 12028,
+          "outputTokens": 3704,
+          "totalTokens": 15732
+        },
+        {
+          "inputTokens": 15806,
+          "outputTokens": 12,
+          "totalTokens": 15818
+        },
+        {
+          "inputTokens": 18924,
+          "outputTokens": 3703,
+          "totalTokens": 22627
+        },
+        {
+          "inputTokens": 22701,
+          "outputTokens": 12,
+          "totalTokens": 22713
+        },
+        {
+          "inputTokens": 25810,
+          "outputTokens": 3709,
+          "totalTokens": 29519
+        },
+        {
+          "inputTokens": 29593,
+          "outputTokens": 12,
+          "totalTokens": 29605
+        },
+        {
+          "inputTokens": 32720,
+          "outputTokens": 3717,
+          "totalTokens": 36437
+        },
+        {
+          "inputTokens": 36511,
+          "outputTokens": 12,
+          "totalTokens": 36523
+        },
+        {
+          "inputTokens": 39638,
+          "outputTokens": 3711,
+          "totalTokens": 43349
+        },
+        {
+          "inputTokens": 43423,
+          "outputTokens": 12,
+          "totalTokens": 43435
+        }
+      ]
+    }
+  },
+  "modelPerformance": {
+    "model": "qwen3.7-plus",
+    "stages": 3,
+    "durationMs": 302819,
+    "requests": 12,
+    "inputTokens": 281186,
+    "outputTokens": 24481,
+    "totalTokens": 305667,
+    "calls": [
+      {
+        "stage": "direct",
+        "durationMs": 40519,
+        "usage": {
+          "requests": 1,
+          "inputTokens": 864,
+          "outputTokens": 3309,
+          "totalTokens": 4173,
+          "requestUsage": [
+            {
+              "inputTokens": 864,
+              "outputTokens": 3309,
+              "totalTokens": 4173
+            }
+          ]
+        },
+        "status": "completed"
+      },
+      {
+        "stage": "test_generation",
+        "durationMs": 29936,
+        "usage": {
+          "requests": 1,
+          "inputTokens": 3168,
+          "outputTokens": 2568,
+          "totalTokens": 5736,
+          "requestUsage": [
+            {
+              "inputTokens": 3168,
+              "outputTokens": 2568,
+              "totalTokens": 5736
+            }
+          ]
+        },
+        "status": "completed"
+      },
+      {
+        "stage": "tdd_repair",
+        "durationMs": 232364,
+        "usage": {
+          "requests": 10,
+          "inputTokens": 277154,
+          "outputTokens": 18604,
+          "totalTokens": 295758,
+          "requestUsage": [
+            {
+              "inputTokens": 12028,
+              "outputTokens": 3704,
+              "totalTokens": 15732
+            },
+            {
+              "inputTokens": 15806,
+              "outputTokens": 12,
+              "totalTokens": 15818
+            },
+            {
+              "inputTokens": 18924,
+              "outputTokens": 3703,
+              "totalTokens": 22627
+            },
+            {
+              "inputTokens": 22701,
+              "outputTokens": 12,
+              "totalTokens": 22713
+            },
+            {
+              "inputTokens": 25810,
+              "outputTokens": 3709,
+              "totalTokens": 29519
+            },
+            {
+              "inputTokens": 29593,
+              "outputTokens": 12,
+              "totalTokens": 29605
+            },
+            {
+              "inputTokens": 32720,
+              "outputTokens": 3717,
+              "totalTokens": 36437
+            },
+            {
+              "inputTokens": 36511,
+              "outputTokens": 12,
+              "totalTokens": 36523
+            },
+            {
+              "inputTokens": 39638,
+              "outputTokens": 3711,
+              "totalTokens": 43349
+            },
+            {
+              "inputTokens": 43423,
+              "outputTokens": 12,
+              "totalTokens": 43435
+            }
+          ]
+        },
+        "status": "completed"
+      }
+    ]
+  },
+  "modelConfiguration": {
+    "envFile": ".env",
+    "model": "qwen3.7-plus",
+    "inferencePolicy": {
+      "id": "closest-non-thinking-v1",
+      "model": "qwen3.7-plus",
+      "mode": "non-thinking",
+      "temperature": 0,
+      "providerData": {
+        "enable_thinking": false
+      }
+    }
+  }
+}

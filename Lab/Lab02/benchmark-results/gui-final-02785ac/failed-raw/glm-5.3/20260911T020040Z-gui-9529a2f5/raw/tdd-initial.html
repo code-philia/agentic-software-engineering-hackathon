@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Create an Account</title>
+<style>
+:root{--navy:#0b2545;--orange:#e8630a;--orange-d:#c65207;--bg:#e8edf2;--err:#b3261e;--ok:#1b6e3a}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:#1c2b3a;line-height:1.5}
+header{background:var(--navy);color:#fff;padding:1.25rem 1.5rem;display:flex;align-items:center;gap:.75rem}
+header .badge{width:2.25rem;height:2.25rem;background:var(--orange);border-radius:6px;display:grid;place-items:center;font-weight:700;font-size:1.1rem}
+header h1{font-size:1.15rem;margin:0;font-weight:600}
+header p{margin:0;font-size:.85rem;color:#c8d4e2}
+main{max-width:44rem;margin:2rem auto;padding:0 1rem}
+.panel{background:#fff;border-radius:10px;box-shadow:0 2px 10px rgba(11,37,69,.12);padding:2rem}
+.panel h2{margin:0 0 .25rem;font-size:1.5rem;color:var(--navy)}
+.panel>p{margin:0 0 1.5rem;color:#5a6b7d}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem 1.25rem}
+.field{display:flex;flex-direction:column}
+.field.full{grid-column:1/-1}
+label{font-weight:600;font-size:.9rem;margin-bottom:.3rem}
+input[type=text],input[type=email],input[type=password],input[type=date]{padding:.6rem .7rem;border:1px solid #9fb0c0;border-radius:6px;font-size:1rem;background:#fff;width:100%}
+input:focus{outline:3px solid rgba(232,99,10,.35);border-color:var(--orange)}
+input[aria-invalid=true]{border-color:var(--err)}
+.hint{font-size:.8rem;color:#5a6b7d;margin:.25rem 0 0}
+.error{font-size:.82rem;color:var(--err);margin:.25rem 0 0;font-weight:600}
+.pw-wrap{position:relative}
+.pw-wrap input{padding-right:4.5rem}
+.toggle{position:absolute;right:.4rem;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--navy);font-size:.8rem;font-weight:600;cursor:pointer;padding:.35rem .5rem;border-radius:4px}
+.toggle:hover{background:#eef2f6}
+.check{display:flex;gap:.6rem;align-items:flex-start;margin-top:.25rem}
+.check input{width:1.15rem;height:1.15rem;margin-top:.2rem;accent-color:var(--orange)}
+button[type=submit]{grid-column:1/-1;background:var(--orange);color:#fff;border:none;border-radius:6px;padding:.75rem;font-size:1.05rem;font-weight:700;cursor:pointer;margin-top:.5rem}
+button[type=submit]:hover{background:var(--orange-d)}
+button[type=submit]:focus{outline:3px solid rgba(232,99,10,.4);outline-offset:2px}
+.status{margin-top:1rem;padding:.75rem 1rem;border-radius:6px;font-weight:600;display:none}
+.status.ok{display:block;background:#e6f4ea;color:var(--ok)}
+.status.err{display:block;background:#fdecea;color:var(--err)}
+@media(max-width:560px){.grid{grid-template-columns:1fr}.panel{padding:1.25rem}}
+</style>
+</head>
+<body>
+<header>
+  <div class="badge" aria-hidden="true">G</div>
+  <div>
+    <h1>GovServe Portal</h1>
+    <p>Public services, made simple</p>
+  </div>
+</header>
+<main>
+  <section class="panel">
+    <h2>Create your account</h2>
+    <p>Register to access online public services. Fields marked with an asterisk (*) are required.</p>
+    <form id="regForm" novalidate>
+      <div class="grid">
+        <div class="field">
+          <label for="username">Username *</label>
+          <input type="text" id="username" name="username" autocomplete="username" required aria-describedby="username-hint username-err">
+          <p class="hint" id="username-hint">3–30 characters; letters, numbers, dots, hyphens or underscores.</p>
+          <p class="error" id="username-err" hidden></p>
+        </div>
+        <div class="field">
+          <label for="email">Email address *</label>
+          <input type="email" id="email" name="email" autocomplete="email" required aria-describedby="email-err">
+          <p class="error" id="email-err" hidden></p>
+        </div>
+        <div class="field">
+          <label for="dob">Date of birth (optional)</label>
+          <input type="date" id="dob" name="dob" autocomplete="bday" aria-describedby="dob-err">
+          <p class="error" id="dob-err" hidden></p>
+        </div>
+        <div class="field">
+          <label for="password">Password *</label>
+          <div class="pw-wrap">
+            <input type="password" id="password" name="password" autocomplete="new-password" required aria-describedby="pw-hint pw-err">
+            <button type="button" class="toggle" data-for="password" aria-pressed="false">Show</button>
+          </div>
+          <p class="hint" id="pw-hint">At least 10 characters with upper, lower, a number and a symbol.</p>
+          <p class="error" id="pw-err" hidden></p>
+        </div>
+        <div class="field full">
+          <label for="confirm">Confirm password *</label>
+          <div class="pw-wrap">
+            <input type="password" id="confirm" name="confirm" autocomplete="new-password" required aria-describedby="confirm-err">
+            <button type="button" class="toggle" data-for="confirm" aria-pressed="false">Show</button>
+          </div>
+          <p class="error" id="confirm-err" hidden></p>
+        </div>
+        <div class="field full">
+          <div class="check">
+            <input type="checkbox" id="terms" name="terms" required aria-describedby="terms-err">
+            <label for="terms" style="font-weight:400">I have read and accept the <a href="#" onclick="return false">Terms of Service</a> and Privacy Policy. *</label>
+          </div>
+          <p class="error" id="terms-err" hidden></p>
+        </div>
+        <button type="submit">Create account</button>
+      </div>
+    </form>
+    <p class="status" id="status" role="status" aria-live="polite"></p>
+  </section>
+</main>
+<script>
+(function(){
+  var form=document.getElementById('regForm'),status=document.getElementById('status');
+  var users=[];try{users=JSON.parse(localStorage.getItem('registeredUsers')||'[]')}catch(e){}
+  function err(id,msg){var f=document.getElementById(id),e=document.getElementById(id+'-err');
+    if(msg){f.setAttribute('aria-invalid','true');e.textContent=msg;e.hidden=false;return false}
+    f.removeAttribute('aria-invalid');e.hidden=true;return true}
+  function showErr(id,msg){var e=document.getElementById(id+'-err');e.textContent=msg;e.hidden=false;return false}
+  document.querySelectorAll('.toggle').forEach(function(b){
+    b.addEventListener('click',function(){
+      var i=document.getElementById(b.dataset.for);
+      var show=i.type==='password';
+      i.type=show?'text':'password';
+      b.textContent=show?'Hide':'Show';
+      b.setAttribute('aria-pressed',show);
+    });
+  });
+  form.addEventListener('submit',function(ev){
+    ev.preventDefault();
+    status.className='status';status.textContent='';
+    var ok=true;
+    var u=document.getElementById('username').value.trim();
+    var em=document.getElementById('email').value.trim().toLowerCase();
+    var dob=document.getElementById('dob').value;
+    var pw=document.getElementById('password').value;
+    var cf=document.getElementById('confirm').value;
+    ok=err('username',!/^[a-zA-Z0-9._-]{3,30}$/.test(u)?'Enter a username of 3–30 characters using letters, numbers, dots, hyphens or underscores.':(users.some(function(x){return x.username.toLowerCase()===u.toLowerCase()})?'That username is already registered. Please choose another.':null))&&ok;
+    ok=err('email',!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(em)?'Enter a valid email address, e.g. name@example.com.':(users.some(function(x){return x.email===em})?'An account with this email already exists.':null))&&ok;
+    var dobMsg=null;
+    if(dob){var d=new Date(dob),now=new Date();
+      if(d>now)dobMsg='Date of birth cannot be in the future.';
+      else if(d<new Date(1900,0,1))dobMsg='Please enter a realistic date of birth.';
+      else if(now.getFullYear()-d.getFullYear()<13)dobMsg='You must be at least 13 years old to register.';}
+    ok=err('dob',dobMsg)&&ok;
+    ok=err('password',pw.length<10||!/[a-z]/.test(pw)||!/[A-Z]/.test(pw)||!/\d/.test(pw)||!/[^A-Za-z0-9]/.test(pw)?'Password must be at least 10 characters and include upper and lower case letters, a number and a symbol.':null)&&ok;
+    ok=err('confirm',cf!==pw?'Passwords do not match.':null)&&ok;
+    ok=showErr('terms',document.getElementById('terms').checked?null:'You must accept the Terms of Service to continue.')&&ok;
+    if(!ok){status.className='status err';status.textContent='Please correct the highlighted fields and try again.';return}
+    users.push({username:u,email:em,dob:dob||null,registered:new Date().toISOString()});
+    localStorage.setItem('registeredUsers',JSON.stringify(users));
+    form.reset();
+    document.querySelectorAll('.toggle').forEach(function(b){b.textContent='Show';b.setAttribute('aria-pressed','false')});
+    status.className='status ok';
+    status.textContent='Registration successful! Welcome, '+u+'. You may now sign in with your new account.';
+  });
+})();
+</script>
+</body>
+</html>

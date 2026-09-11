@@ -1,0 +1,436 @@
+{
+  "outcome": "INVALID_TRAIN_SUITE",
+  "runId": "20260911T020501Z-gui-76afe5a0",
+  "runRoot": "/private/tmp/lab02-final-02785ac-q36plus/Lab/Lab02/runs/20260911T020501Z-gui-76afe5a0",
+  "workspaceRoot": "/private/tmp/lab02-final-02785ac-q36plus/Lab/Lab02/workspace/gui",
+  "directValidation": {
+    "passed": 9,
+    "total": 36,
+    "durationMs": 7465,
+    "categories": [
+      {
+        "name": "Structure and accessibility",
+        "passed": 3,
+        "total": 9
+      },
+      {
+        "name": "Form validation",
+        "passed": 0,
+        "total": 9
+      },
+      {
+        "name": "Interaction and state",
+        "passed": 0,
+        "total": 10
+      },
+      {
+        "name": "Stable visual requirements",
+        "passed": 6,
+        "total": 8
+      }
+    ],
+    "checks": [
+      {
+        "name": "exposes the registration purpose with semantic headings and form",
+        "category": "Structure and accessibility",
+        "passed": true
+      },
+      {
+        "name": "associates accessible labels with every data field",
+        "category": "Structure and accessibility",
+        "passed": false
+      },
+      {
+        "name": "uses suitable input types",
+        "category": "Structure and accessibility",
+        "passed": false
+      },
+      {
+        "name": "provides useful autocomplete metadata",
+        "category": "Structure and accessibility",
+        "passed": true
+      },
+      {
+        "name": "provides accessible terms and password visibility controls",
+        "category": "Structure and accessibility",
+        "passed": false
+      },
+      {
+        "name": "associates visible explanations with invalid controls",
+        "category": "Structure and accessibility",
+        "passed": false
+      },
+      {
+        "name": "exposes important feedback through live or alert semantics",
+        "category": "Structure and accessibility",
+        "passed": true
+      },
+      {
+        "name": "shows an error summary when submission has problems",
+        "category": "Structure and accessibility",
+        "passed": false
+      },
+      {
+        "name": "focuses the first invalid control after submission",
+        "category": "Structure and accessibility",
+        "passed": false
+      },
+      {
+        "name": "reports all missing requirements in one submission",
+        "category": "Form validation",
+        "passed": false
+      },
+      {
+        "name": "accepts username length and character boundaries",
+        "category": "Form validation",
+        "passed": false
+      },
+      {
+        "name": "rejects usernames outside the public format",
+        "category": "Form validation",
+        "passed": false
+      },
+      {
+        "name": "rejects clearly malformed email addresses",
+        "category": "Form validation",
+        "passed": false
+      },
+      {
+        "name": "enforces password length, character rules, and exact confirmation",
+        "category": "Form validation",
+        "passed": false
+      },
+      {
+        "name": "accepts a real optional date and requires terms",
+        "category": "Form validation",
+        "passed": false
+      },
+      {
+        "name": "trims and normalizes identity input",
+        "category": "Form validation",
+        "passed": false
+      },
+      {
+        "name": "accepts a password at the maximum length",
+        "category": "Form validation",
+        "passed": false
+      },
+      {
+        "name": "allows the optional date of birth to remain empty",
+        "category": "Form validation",
+        "passed": false
+      },
+      {
+        "name": "reveals and hides both password fields",
+        "category": "Interaction and state",
+        "passed": false
+      },
+      {
+        "name": "completes valid registration with readable success feedback",
+        "category": "Interaction and state",
+        "passed": false
+      },
+      {
+        "name": "saves normalized public details",
+        "category": "Interaction and state",
+        "passed": false
+      },
+      {
+        "name": "rejects a case-insensitive username duplicate after reload",
+        "category": "Interaction and state",
+        "passed": false
+      },
+      {
+        "name": "rejects a normalized email duplicate after reload",
+        "category": "Interaction and state",
+        "passed": false
+      },
+      {
+        "name": "does not reserve details from a rejected attempt",
+        "category": "Interaction and state",
+        "passed": false
+      },
+      {
+        "name": "never stores either password field",
+        "category": "Interaction and state",
+        "passed": false
+      },
+      {
+        "name": "updates the password visibility control's accessible action",
+        "category": "Interaction and state",
+        "passed": false
+      },
+      {
+        "name": "clears stale field errors after corrected submission",
+        "category": "Interaction and state",
+        "passed": false
+      },
+      {
+        "name": "remembers multiple distinct successful accounts",
+        "category": "Interaction and state",
+        "passed": false
+      },
+      {
+        "name": "presents a full-width dark-blue header",
+        "category": "Stable visual requirements",
+        "passed": true
+      },
+      {
+        "name": "uses a pale background around a centered white panel",
+        "category": "Stable visual requirements",
+        "passed": true
+      },
+      {
+        "name": "uses a restrained orange accent and primary action",
+        "category": "Stable visual requirements",
+        "passed": true
+      },
+      {
+        "name": "provides a clearly visible keyboard focus indicator",
+        "category": "Stable visual requirements",
+        "passed": true
+      },
+      {
+        "name": "shows error and success states with text rather than color alone",
+        "category": "Stable visual requirements",
+        "passed": false
+      },
+      {
+        "name": "remains operable without horizontal scrolling at 375 pixels",
+        "category": "Stable visual requirements",
+        "passed": true
+      },
+      {
+        "name": "positions labels above their text controls",
+        "category": "Stable visual requirements",
+        "passed": false
+      },
+      {
+        "name": "changes related desktop fields to one column on a narrow screen",
+        "category": "Stable visual requirements",
+        "passed": true
+      }
+    ]
+  },
+  "referenceTrainResult": {
+    "status": "RED",
+    "summary": "7/9 train tests passed.",
+    "total": 9,
+    "passed": 7,
+    "failed": 2,
+    "durationMs": 4016,
+    "failures": [
+      {
+        "name": "persistence and duplicate handling",
+        "message": "Error: expect(received).toMatch(expected)\nExpected pattern: /.+/\nReceived string:  \"\""
+      },
+      {
+        "name": "presentation and responsive layout",
+        "message": "Error: expect(received).toBeTruthy()\nReceived: false"
+      }
+    ]
+  },
+  "finalTrainResult": {
+    "status": "RED",
+    "summary": "7/9 train tests passed.",
+    "total": 9,
+    "passed": 7,
+    "failed": 2,
+    "durationMs": 4016,
+    "failures": [
+      {
+        "name": "persistence and duplicate handling",
+        "message": "Error: expect(received).toMatch(expected)\nExpected pattern: /.+/\nReceived string:  \"\""
+      },
+      {
+        "name": "presentation and responsive layout",
+        "message": "Error: expect(received).toBeTruthy()\nReceived: false"
+      }
+    ]
+  },
+  "testRepairs": 3,
+  "repairs": 0,
+  "modelUsage": {
+    "direct": {
+      "requests": 1,
+      "inputTokens": 907,
+      "outputTokens": 3572,
+      "totalTokens": 4479,
+      "requestUsage": [
+        {
+          "inputTokens": 907,
+          "outputTokens": 3572,
+          "totalTokens": 4479
+        }
+      ]
+    },
+    "testGeneration": {
+      "requests": 1,
+      "inputTokens": 3749,
+      "outputTokens": 2958,
+      "totalTokens": 6707,
+      "requestUsage": [
+        {
+          "inputTokens": 3749,
+          "outputTokens": 2958,
+          "totalTokens": 6707
+        }
+      ]
+    },
+    "testRepairs": [
+      {
+        "requests": 1,
+        "inputTokens": 7890,
+        "outputTokens": 3242,
+        "totalTokens": 11132,
+        "requestUsage": [
+          {
+            "inputTokens": 7890,
+            "outputTokens": 3242,
+            "totalTokens": 11132
+          }
+        ]
+      },
+      {
+        "requests": 1,
+        "inputTokens": 8167,
+        "outputTokens": 3244,
+        "totalTokens": 11411,
+        "requestUsage": [
+          {
+            "inputTokens": 8167,
+            "outputTokens": 3244,
+            "totalTokens": 11411
+          }
+        ]
+      },
+      {
+        "requests": 1,
+        "inputTokens": 8148,
+        "outputTokens": 3360,
+        "totalTokens": 11508,
+        "requestUsage": [
+          {
+            "inputTokens": 8148,
+            "outputTokens": 3360,
+            "totalTokens": 11508
+          }
+        ]
+      }
+    ]
+  },
+  "modelPerformance": {
+    "model": "qwen3.6-plus",
+    "stages": 5,
+    "durationMs": 285169,
+    "requests": 5,
+    "inputTokens": 28861,
+    "outputTokens": 16376,
+    "totalTokens": 45237,
+    "calls": [
+      {
+        "stage": "direct",
+        "durationMs": 62207,
+        "usage": {
+          "requests": 1,
+          "inputTokens": 907,
+          "outputTokens": 3572,
+          "totalTokens": 4479,
+          "requestUsage": [
+            {
+              "inputTokens": 907,
+              "outputTokens": 3572,
+              "totalTokens": 4479
+            }
+          ]
+        },
+        "status": "completed"
+      },
+      {
+        "stage": "test_generation",
+        "durationMs": 51454,
+        "usage": {
+          "requests": 1,
+          "inputTokens": 3749,
+          "outputTokens": 2958,
+          "totalTokens": 6707,
+          "requestUsage": [
+            {
+              "inputTokens": 3749,
+              "outputTokens": 2958,
+              "totalTokens": 6707
+            }
+          ]
+        },
+        "status": "completed"
+      },
+      {
+        "stage": "test_repair",
+        "durationMs": 56749,
+        "usage": {
+          "requests": 1,
+          "inputTokens": 7890,
+          "outputTokens": 3242,
+          "totalTokens": 11132,
+          "requestUsage": [
+            {
+              "inputTokens": 7890,
+              "outputTokens": 3242,
+              "totalTokens": 11132
+            }
+          ]
+        },
+        "status": "completed"
+      },
+      {
+        "stage": "test_repair",
+        "durationMs": 56445,
+        "usage": {
+          "requests": 1,
+          "inputTokens": 8167,
+          "outputTokens": 3244,
+          "totalTokens": 11411,
+          "requestUsage": [
+            {
+              "inputTokens": 8167,
+              "outputTokens": 3244,
+              "totalTokens": 11411
+            }
+          ]
+        },
+        "status": "completed"
+      },
+      {
+        "stage": "test_repair",
+        "durationMs": 58314,
+        "usage": {
+          "requests": 1,
+          "inputTokens": 8148,
+          "outputTokens": 3360,
+          "totalTokens": 11508,
+          "requestUsage": [
+            {
+              "inputTokens": 8148,
+              "outputTokens": 3360,
+              "totalTokens": 11508
+            }
+          ]
+        },
+        "status": "completed"
+      }
+    ]
+  },
+  "modelConfiguration": {
+    "envFile": ".env",
+    "model": "qwen3.6-plus",
+    "inferencePolicy": {
+      "id": "classroom-model-policy-v2",
+      "model": "qwen3.6-plus",
+      "mode": "non-thinking",
+      "temperature": 0,
+      "providerData": {
+        "enable_thinking": false
+      }
+    }
+  }
+}

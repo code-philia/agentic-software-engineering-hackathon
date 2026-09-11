@@ -24,10 +24,10 @@ export interface UsageSnapshot {
 }
 
 export interface InferencePolicy {
-  readonly id: "closest-non-thinking-v1";
+  readonly id: "classroom-model-policy-v2";
   readonly model: SupportedModel;
   readonly mode: "non-thinking" | "lowest-supported-thinking";
-  readonly temperature?: 0;
+  readonly temperature?: number;
   readonly reasoningEffort?: "none" | "low";
   readonly providerData: Readonly<Record<string, unknown>>;
 }
@@ -71,10 +71,10 @@ export const executionPolicy: ExecutionPolicy = {
   },
   maxOutputTokens: {
     doctor: 2_048,
-    direct: 12_000,
-    "test-generation": 8_192,
-    "test-repair": 8_192,
-    "implementation-repair": 8_192,
+    direct: 16_384,
+    "test-generation": 16_384,
+    "test-repair": 16_384,
+    "implementation-repair": 16_384,
   },
   maxTransientRetries: 1,
   retryBackoff: { initialDelayMs: 1_000, maxDelayMs: 5_000 },
@@ -99,6 +99,13 @@ const genericNonThinkingPolicy = {
   providerData: {},
 } as const;
 
+const deepSeekLightThinkingPolicy = {
+  mode: "lowest-supported-thinking",
+  temperature: 0.2,
+  reasoningEffort: "low",
+  providerData: { thinking: { type: "enabled" } },
+} as const;
+
 const modelInferencePolicies: Readonly<
   Partial<Record<
     SupportedModel,
@@ -106,6 +113,7 @@ const modelInferencePolicies: Readonly<
   >>
 > = {
   "qwen3.8-max": qwenNonThinkingPolicy,
+  "qwen3.7-max": qwenNonThinkingPolicy,
   "qwen3.7-plus": qwenNonThinkingPolicy,
   "qwen3.6-flash": qwenNonThinkingPolicy,
   "qwen3.6-plus": qwenNonThinkingPolicy,
@@ -118,10 +126,10 @@ const modelInferencePolicies: Readonly<
     providerData: {},
   },
   "glm-5.2": standardNonThinkingPolicy,
-  "deepseek-v4-pro": standardNonThinkingPolicy,
-  "deepseek-v4-pro-0813": standardNonThinkingPolicy,
-  "deepseek-v4-flash": standardNonThinkingPolicy,
-  "deepseek-v4-flash-0731": standardNonThinkingPolicy,
+  "deepseek-v4-pro": deepSeekLightThinkingPolicy,
+  "deepseek-v4-pro-0813": deepSeekLightThinkingPolicy,
+  "deepseek-v4-flash": deepSeekLightThinkingPolicy,
+  "deepseek-v4-flash-0731": deepSeekLightThinkingPolicy,
 };
 
 function inferredInferencePolicy(
@@ -129,6 +137,9 @@ function inferredInferencePolicy(
 ): Omit<InferencePolicy, "id" | "model"> {
   const normalized = model.toLowerCase();
   if (normalized.startsWith("qwen")) return qwenNonThinkingPolicy;
+  if (normalized.startsWith("deepseek-")) {
+    return deepSeekLightThinkingPolicy;
+  }
   if (normalized.startsWith("glm-5.3")) {
     return {
       mode: "lowest-supported-thinking",
@@ -138,7 +149,6 @@ function inferredInferencePolicy(
     };
   }
   if (
-    normalized.startsWith("deepseek-") ||
     normalized.startsWith("kimi-") ||
     normalized.startsWith("minimax-") ||
     normalized.startsWith("glm-")
@@ -150,7 +160,7 @@ function inferredInferencePolicy(
 
 export function resolveInferencePolicy(config: ModelConfig): InferencePolicy {
   return {
-    id: "closest-non-thinking-v1",
+    id: "classroom-model-policy-v2",
     model: config.model,
     ...(modelInferencePolicies[config.model] ??
       inferredInferencePolicy(config.model)),
