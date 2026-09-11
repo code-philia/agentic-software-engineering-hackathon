@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Registration</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:#e8ecf1;color:#1a1a1a;line-height:1.5;min-height:100vh;display:flex;flex-direction:column}
+header{background:#0b1d3a;color:#fff;padding:1rem 1.5rem;width:100%}
+header h1{font-size:1.25rem;font-weight:600;letter-spacing:.02em}
+header .accent{color:#e67e22}
+main{flex:1;display:flex;justify-content:center;padding:2rem 1rem}
+.panel{background:#fff;border-radius:8px;box-shadow:0 2px 12px rgba(0,0,0,.08);padding:2rem;width:100%;max-width:640px}
+.panel h2{font-size:1.5rem;margin-bottom:.25rem;color:#0b1d3a}
+.panel p.subtitle{color:#555;margin-bottom:1.5rem;font-size:.95rem}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem 1.5rem}
+.full{grid-column:1/-1}
+label{display:block;font-weight:600;margin-bottom:.3rem;font-size:.9rem;color:#0b1d3a}
+label .req{color:#c0392b;margin-left:2px}
+input[type="text"],input[type="email"],input[type="date"],input[type="password"]{width:100%;padding:.55rem .7rem;border:1px solid #b0bec5;border-radius:4px;font-size:1rem;transition:border-color .2s,box-shadow .2s;background:#fafbfc}
+input:focus{outline:none;border-color:#e67e22;box-shadow:0 0 0 3px rgba(230,126,34,.18)}
+input.invalid{border-color:#c0392b;box-shadow:0 0 0 3px rgba(192,57,43,.12)}
+.error-msg{color:#c0392b;font-size:.82rem;margin-top:.25rem;min-height:1.1em}
+.pw-wrap{position:relative}
+.pw-wrap input{padding-right:2.8rem}
+.toggle-pw{position:absolute;right:.5rem;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#0b1d3a;font-size:.82rem;font-weight:600;padding:2px 4px;border-radius:3px}
+.toggle-pw:hover,.toggle-pw:focus{background:rgba(11,29,58,.08);outline:none}
+.checkbox-row{display:flex;align-items:flex-start;gap:.5rem;margin-top:.25rem}
+.checkbox-row input[type="checkbox"]{margin-top:.25rem;accent-color:#e67e22;width:18px;height:18px;flex-shrink:0}
+.checkbox-row label{font-weight:400;font-size:.9rem;margin-bottom:0}
+.btn-submit{display:inline-block;background:#e67e22;color:#fff;border:none;padding:.7rem 2rem;font-size:1rem;font-weight:600;border-radius:4px;cursor:pointer;transition:background .2s;margin-top:.5rem}
+.btn-submit:hover,.btn-submit:focus{background:#cf6d17;outline:none;box-shadow:0 0 0 3px rgba(230,126,34,.3)}
+.btn-submit:disabled{background:#b0bec5;cursor:not-allowed}
+.success-banner{background:#27ae60;color:#fff;padding:1rem;border-radius:4px;margin-bottom:1rem;text-align:center;font-weight:600}
+@media(max-width:560px){.form-grid{grid-template-columns:1fr}.panel{padding:1.25rem}}
+</style>
+</head>
+<body>
+<header><h1><span class="accent">&#9670;</span> Public Service Registration</h1></header>
+<main>
+<div class="panel">
+<h2>Create Your Account</h2>
+<p class="subtitle">All fields marked with * are required.</p>
+<div id="successMsg" class="success-banner" hidden role="status"></div>
+<form id="regForm" novalidate autocomplete="on">
+<div class="form-grid">
+<div>
+<label for="username">Username <span class="req">*</span></label>
+<input type="text" id="username" name="username" required autocomplete="username" minlength="3" maxlength="30" aria-describedby="usernameErr">
+<div class="error-msg" id="usernameErr" role="alert"></div>
+</div>
+<div>
+<label for="email">Email Address <span class="req">*</span></label>
+<input type="email" id="email" name="email" required autocomplete="email" aria-describedby="emailErr">
+<div class="error-msg" id="emailErr" role="alert"></div>
+</div>
+<div>
+<label for="dob">Date of Birth</label>
+<input type="date" id="dob" name="dob" autocomplete="bday" aria-describedby="dobErr">
+<div class="error-msg" id="dobErr" role="alert"></div>
+</div>
+<div></div>
+<div>
+<label for="password">Password <span class="req">*</span></label>
+<div class="pw-wrap">
+<input type="password" id="password" name="new-password" required autocomplete="new-password" minlength="8" aria-describedby="pwErr">
+<button type="button" class="toggle-pw" data-target="password" aria-label="Show password">Show</button>
+</div>
+<div class="error-msg" id="pwErr" role="alert"></div>
+</div>
+<div>
+<label for="confirm">Confirm Password <span class="req">*</span></label>
+<div class="pw-wrap">
+<input type="password" id="confirm" name="confirm-password" required autocomplete="new-password" aria-describedby="confirmErr">
+<button type="button" class="toggle-pw" data-target="confirm" aria-label="Show password confirmation">Show</button>
+</div>
+<div class="error-msg" id="confirmErr" role="alert"></div>
+</div>
+<div class="full checkbox-row">
+<input type="checkbox" id="tos" name="tos" required aria-describedby="tosErr">
+<label for="tos">I accept the <strong>Terms of Service</strong> and <strong>Privacy Policy</strong> <span class="req">*</span></label>
+</div>
+<div class="full"><div class="error-msg" id="tosErr" role="alert"></div></div>
+<div class="full">
+<button type="submit" class="btn-submit" id="submitBtn">Register</button>
+</div>
+</div>
+</form>
+</div>
+</main>
+<script>
+(function(){
+var STORAGE_KEY='registered_users_v1';
+function getUsers(){try{return JSON.parse(localStorage.getItem(STORAGE_KEY))||[];}catch(e){return[];}}
+function saveUser(u){var users=getUsers();users.push(u);localStorage.setItem(STORAGE_KEY,JSON.stringify(users));}
+function isDuplicate(username,email){var users=getUsers();var un=username.toLowerCase().trim();var em=email.toLowerCase().trim();return users.some(function(u){return u.username===un||u.email===em;});}
+function setError(id,msg){var el=document.getElementById(id);if(el)el.textContent=msg;}
+function clearErrors(){document.querySelectorAll('.error-msg').forEach(function(e){e.textContent='';});document.querySelectorAll('.invalid').forEach(function(e){e.classList.remove('invalid');});}
+function markInvalid(inputId,errId,msg){var inp=document.getElementById(inputId);if(inp)inp.classList.add('invalid');setError(errId,msg);}
+document.querySelectorAll('.toggle-pw').forEach(function(btn){
+btn.addEventListener('click',function(){
+var target=document.getElementById(btn.getAttribute('data-target'));
+if(!target)return;
+var showing=target.type==='text';
+target.type=showing?'password':'text';
+btn.textContent=showing?'Show':'Hide';
+btn.setAttribute('aria-label',showing?'Show '+btn.getAttribute('aria-label').replace('Hide ',''):'Hide '+btn.getAttribute('aria-label').replace('Show ',''));
+target.focus();
+});
+});
+var form=document.getElementById('regForm');
+var successMsg=document.getElementById('successMsg');
+form.addEventListener('submit',function(e){
+e.preventDefault();
+clearErrors();
+successMsg.hidden=true;
+var valid=true;
+var username=document.getElementById('username').value.trim();
+var email=document.getElementById('email').value.trim();
+var dob=document.getElementById('dob').value;
+var pw=document.getElementById('password').value;
+var confirm=document.getElementById('confirm').value;
+var tos=document.getElementById('tos').checked;
+if(!username||username.length<3){markInvalid('username','usernameErr','Username must be at least 3 characters.');valid=false;}
+else if(!/^[a-zA-Z0-9_]+$/.test(username)){markInvalid('username','usernameErr','Username may only contain letters, numbers, and underscores.');valid=false;}
+var emailRe=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+if(!email){markInvalid('email','emailErr','Email address is required.');valid=false;}
+else if(!emailRe.test(email)){markInvalid('email','emailErr','Please enter a valid email address.');valid=false;}
+if(dob){var d=new Date(dob);var now=new Date();if(isNaN(d.getTime())||d>now){markInvalid('dob','dobErr','Date of birth must be in the past.');valid=false;}}
+if(!pw){markInvalid('password','pwErr','Password is required.');valid=false;}
+else if(pw.length<8){markInvalid('password','pwErr','Password must be at least 8 characters.');valid=false;}
+if(!confirm){markInvalid('confirm','confirmErr','Please confirm your password.');valid=false;}
+else if(pw&&confirm!==pw){markInvalid('confirm','confirmErr','Passwords do not match.');valid=false;}
+if(!tos){setError('tosErr','You must accept the Terms of Service.');valid=false;}
+if(!valid)return;
+if(isDuplicate(username,email)){
+var users=getUsers();var un=username.toLowerCase();var em=email.toLowerCase();
+var dupField='';
+if(users.some(function(u){return u.username===un;}))dupField='username';
+if(users.some(function(u){return u.email===em;}))dupField=dupField?'both':'email';
+if(dupField==='username'||dupField==='both')markInvalid('username','usernameErr','This username is already registered.');
+if(dupField==='email'||dupField==='both')markInvalid('email','emailErr','This email is already registered.');
+return;
+}
+saveUser({username:username.toLowerCase(),email:email.toLowerCase(),dob:dob||null,registeredAt:new Date().toISOString()});
+successMsg.textContent='Registration successful! Welcome, '+username+'.';
+successMsg.hidden=false;
+form.reset();
+document.querySelectorAll('.toggle-pw').forEach(function(b){var t=document.getElementById(b.getAttribute('data-target'));if(t)t.type='password';b.textContent='Show';});
+});
+})();
+</script>
+</body>
+</html>

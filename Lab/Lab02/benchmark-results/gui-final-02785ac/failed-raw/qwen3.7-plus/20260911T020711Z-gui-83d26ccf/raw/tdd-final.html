@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Registration - Public Service Portal</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background-color: #e8edf2;
+  color: #1a1a2e;
+  line-height: 1.5;
+}
+
+header {
+  background-color: #0d1b2a;
+  color: #ffffff;
+  width: 100%;
+  padding: 1rem 2rem;
+  border-bottom: 4px solid #e67e22;
+}
+
+header h1 {
+  font-size: 1.4rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+main {
+  display: flex;
+  justify-content: center;
+  padding: 2rem 1rem;
+  min-height: calc(100vh - 60px);
+}
+
+.panel {
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.10);
+  padding: 2rem;
+  width: 100%;
+  max-width: 720px;
+}
+
+.panel h2 {
+  font-size: 1.25rem;
+  margin-bottom: 1.5rem;
+  color: #0d1b2a;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem 1.5rem;
+}
+
+@media (max-width: 560px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 0.25rem;
+}
+
+.field.full {
+  grid-column: 1 / -1;
+}
+
+label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+  color: #2c3e50;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="date"],
+input[type="password"] {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #b0bec5;
+  border-radius: 4px;
+  font-size: 1rem;
+  color: #1a1a2e;
+  background: #fafbfc;
+  transition: border-color 0.15s ease;
+}
+
+input:focus {
+  outline: 2px solid #e67e22;
+  outline-offset: 1px;
+  border-color: #e67e22;
+  box-shadow: 0 0 0 2px rgba(230,126,34,0.2);
+}
+
+input[aria-invalid="true"] {
+  border-color: #c0392b;
+  background: #fdf0ef;
+}
+
+.error-msg {
+  font-size: 0.8rem;
+  color: #c0392b;
+  min-height: 1.1em;
+  margin-top: 0.15rem;
+}
+
+.password-wrapper {
+  position: relative;
+}
+
+.password-wrapper input {
+  padding-right: 2.8rem;
+}
+
+.toggle-pw {
+  position: absolute;
+  right: 0.4rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.8rem;
+  color: #e67e22;
+  font-weight: 600;
+  padding: 0.2rem 0.4rem;
+  border-radius: 3px;
+}
+
+.toggle-pw:hover, .toggle-pw:focus {
+  background: rgba(230,126,34,0.1);
+  outline: none;
+}
+
+.checkbox-field {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.checkbox-field input[type="checkbox"] {
+  margin-top: 0.2rem;
+  width: 1.1rem;
+  height: 1.1rem;
+  accent-color: #e67e22;
+}
+
+.checkbox-field label {
+  font-weight: 400;
+  font-size: 0.875rem;
+  margin-bottom: 0;
+}
+
+.actions {
+  margin-top: 1.5rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btn-submit {
+  background-color: #e67e22;
+  color: #ffffff;
+  border: none;
+  padding: 0.65rem 2rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.btn-submit:hover {
+  background-color: #cf6d17;
+}
+
+.btn-submit:focus {
+  outline: 2px solid #0d1b2a;
+  outline-offset: 2px;
+}
+
+.success-banner {
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+  border-radius: 4px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  display: none;
+  text-align: center;
+  font-weight: 600;
+}
+
+.alert-summary {
+  background: #fdf0ef;
+  color: #c0392b;
+  border: 1px solid #c0392b;
+  border-radius: 4px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+  display: none;
+  font-weight: 600;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+  white-space: nowrap;
+  border: 0;
+}
+</style>
+</head>
+<body>
+
+<header role="banner">
+  <h1>Public Service Portal</h1>
+</header>
+
+<main>
+  <div class="panel" role="main">
+    <h2>Create Your Account</h2>
+
+    <div id="alertSummary" class="alert-summary" role="alert" aria-live="assertive"></div>
+    <div id="successBanner" class="success-banner" role="status" aria-live="polite"></div>
+
+    <form id="regForm" novalidate>
+      <div class="form-grid">
+
+        <div class="field">
+          <label for="username">Username <span aria-hidden="true">*</span></label>
+          <input type="text" id="username" name="username" required autocomplete="username" aria-required="true" aria-describedby="usernameErr">
+          <div id="usernameErr" class="error-msg" aria-live="polite"></div>
+        </div>
+
+        <div class="field">
+          <label for="email">Email Address <span aria-hidden="true">*</span></label>
+          <input type="text" id="email" name="email" required autocomplete="email" aria-required="true" aria-describedby="emailErr">
+          <div id="emailErr" class="error-msg" aria-live="polite"></div>
+        </div>
+
+        <div class="field">
+          <label for="dob">Date of Birth</label>
+          <input type="date" id="dob" name="dob" autocomplete="bday" aria-describedby="dobErr">
+          <div id="dobErr" class="error-msg" aria-live="polite"></div>
+        </div>
+
+        <div class="field">
+          <label for="password">Password <span aria-hidden="true">*</span></label>
+          <div class="password-wrapper">
+            <input type="password" id="password" name="password" required autocomplete="new-password" aria-required="true" aria-describedby="passwordErr">
+            <button type="button" class="toggle-pw" id="passwordToggle" aria-label="Show password">Show</button>
+          </div>
+          <div id="passwordErr" class="error-msg" aria-live="polite"></div>
+        </div>
+
+        <div class="field full">
+          <label for="confirmPassword">Confirm Password <span aria-hidden="true">*</span></label>
+          <div class="password-wrapper">
+            <input type="password" id="confirmPassword" name="confirmPassword" required autocomplete="new-password" aria-required="true" aria-describedby="confirmPasswordErr">
+          </div>
+          <div id="confirmPasswordErr" class="error-msg" aria-live="polite"></div>
+        </div>
+
+        <div class="field full checkbox-field">
+          <input type="checkbox" id="terms" name="terms" required aria-required="true" aria-describedby="termsErr">
+          <label for="terms">I accept the <a href="#" onclick="return false;">Terms of Service</a> and <a href="#" onclick="return false;">Privacy Policy</a>. <span aria-hidden="true">*</span></label>
+        </div>
+        <div class="field full">
+          <div id="termsErr" class="error-msg" aria-live="polite"></div>
+        </div>
+
+      </div>
+
+      <div class="actions">
+        <button type="submit" class="btn-submit">Register</button>
+      </div>
+    </form>
+  </div>
+</main>
+
+<script>
+(function() {
+  var form = document.getElementById('regForm');
+  var successBanner = document.getElementById('successBanner');
+  var alertSummary = document.getElementById('alertSummary');
+  var passwordToggle = document.getElementById('passwordToggle');
+  var passwordInput = document.getElementById('password');
+  var confirmPasswordInput = document.getElementById('confirmPassword');
+
+  // Toggle password visibility for both inputs
+  passwordToggle.addEventListener('click', function() {
+    var isHidden = passwordInput.type === 'password';
+    if (isHidden) {
+      passwordInput.type = 'text';
+      confirmPasswordInput.type = 'text';
+      this.textContent = 'Hide';
+      this.setAttribute('aria-label', 'Hide password');
+    } else {
+      passwordInput.type = 'password';
+      confirmPasswordInput.type = 'password';
+      this.textContent = 'Show';
+      this.setAttribute('aria-label', 'Show password');
+    }
+  });
+
+  function showError(fieldId, msg) {
+    var errEl = document.getElementById(fieldId + 'Err');
+    var input = document.getElementById(fieldId);
+    if (errEl) errEl.textContent = msg;
+    if (input) input.setAttribute('aria-invalid', 'true');
+  }
+
+  function clearError(fieldId) {
+    var errEl = document.getElementById(fieldId + 'Err');
+    var input = document.getElementById(fieldId);
+    if (errEl) errEl.textContent = '';
+    if (input) input.removeAttribute('aria-invalid');
+  }
+
+  function clearAllErrors() {
+    ['username','email','dob','password','confirmPassword','terms'].forEach(clearError);
+  }
+
+  function validateUsername(value) {
+    var trimmed = value.trim();
+    if (!trimmed) return 'Username is a required field.';
+    if (trimmed.length < 3) return 'Username must be at least 3 characters.';
+    if (trimmed.length > 20) return 'Username must be 20 characters or fewer.';
+    if (!/^[a-zA-Z]/.test(trimmed)) return 'Username must start with a letter.';
+    if (!/^[a-zA-Z][a-zA-Z0-9_]*$/.test(trimmed)) return 'Username may only contain letters, digits, and underscores.';
+    return null;
+  }
+
+  function validateEmail(value) {
+    var trimmed = value.trim();
+    if (!trimmed) return 'Email address is a required field.';
+    // Must have exactly one @
+    var atIdx = trimmed.indexOf('@');
+    if (atIdx <= 0) return 'Please enter a valid email address.';
+    if (trimmed.indexOf('@', atIdx + 1) !== -1) return 'Please enter a valid email address.';
+    var local = trimmed.substring(0, atIdx);
+    var domain = trimmed.substring(atIdx + 1);
+    // Local part checks
+    if (!local) return 'Please enter a valid email address.';
+    if (/\s/.test(local)) return 'Please enter a valid email address.';
+    if (local.startsWith('.') || local.endsWith('.')) return 'Please enter a valid email address.';
+    // Domain checks
+    if (!domain) return 'Please enter a valid email address.';
+    if (/\s/.test(domain)) return 'Please enter a valid email address.';
+    // Split domain into labels
+    var labels = domain.split('.');
+    if (labels.length < 2) return 'Please enter a valid email address.';
+    for (var i = 0; i < labels.length; i++) {
+      var label = labels[i];
+      if (!label) return 'Please enter a valid email address.';
+      if (label.startsWith('-') || label.endsWith('-')) return 'Please enter a valid email address.';
+    }
+    return null;
+  }
+
+  function validateDob(value) {
+    if (!value) return null;
+    // Must match YYYY-MM-DD format
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return 'Please enter a valid date in YYYY-MM-DD format.';
+    var parts = value.split('-');
+    var year = parseInt(parts[0], 10);
+    var month = parseInt(parts[1], 10);
+    var day = parseInt(parts[2], 10);
+    if (month < 1 || month > 12) return 'Please enter a valid date.';
+    if (day < 1) return 'Please enter a valid date.';
+    // Check days in month
+    var daysInMonth = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+    // Leap year check
+    if ((year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0)) {
+      daysInMonth[1] = 29;
+    }
+    if (day > daysInMonth[month - 1]) return 'Please enter a valid date.';
+    return null;
+  }
+
+  function validatePassword(value) {
+    if (!value) return 'Password is a required field.';
+    if (value.length < 10) return 'Password must be at least 10 characters.';
+    if (value.length > 64) return 'Password must be 64 characters or fewer.';
+    if (!/[a-zA-Z]/.test(value)) return 'Password must contain at least one letter.';
+    if (!/[0-9]/.test(value)) return 'Password must contain at least one digit.';
+    return null;
+  }
+
+  function validateConfirmPassword(confirmValue, passwordValue) {
+    if (!confirmValue) return 'Please confirm your password.';
+    if (confirmValue !== passwordValue) return 'Passwords do not match.';
+    return null;
+  }
+
+  function validateTerms() {
+    var cb = document.getElementById('terms');
+    if (!cb.checked) return 'You must accept the Terms of Service.';
+    return null;
+  }
+
+  // Real-time validation on blur
+  ['username','email','dob','password','confirmPassword'].forEach(function(id) {
+    var el = document.getElementById(id);
+    el.addEventListener('blur', function() {
+      var err;
+      if (id === 'confirmPassword') {
+        err = validateConfirmPassword(el.value, passwordInput.value);
+      } else if (id === 'username') {
+        err = validateUsername(el.value);
+      } else if (id === 'email') {
+        err = validateEmail(el.value);
+      } else if (id === 'dob') {
+        err = validateDob(el.value);
+      } else if (id === 'password') {
+        err = validatePassword(el.value);
+      }
+      if (err) showError(id, err);
+      else clearError(id);
+    });
+    el.addEventListener('input', function() {
+      if (el.getAttribute('aria-invalid') === 'true') {
+        var err;
+        if (id === 'confirmPassword') {
+          err = validateConfirmPassword(el.value, passwordInput.value);
+        } else if (id === 'username') {
+          err = validateUsername(el.value);
+        } else if (id === 'email') {
+          err = validateEmail(el.value);
+        } else if (id === 'dob') {
+          err = validateDob(el.value);
+        } else if (id === 'password') {
+          err = validatePassword(el.value);
+        }
+        if (!err) clearError(id);
+      }
+    });
+  });
+
+  document.getElementById('terms').addEventListener('change', function() {
+    var err = validateTerms();
+    if (err) showError('terms', err);
+    else clearError('terms');
+  });
+
+  // Storage functions using localStorage
+  function getRegisteredUsers() {
+    try {
+      var data = localStorage.getItem('_registered_users');
+      return data ? JSON.parse(data) : [];
+    } catch(e) {
+      return [];
+    }
+  }
+
+  function saveRegisteredUser(username, email, dob) {
+    var users = getRegisteredUsers();
+    var record = { username: username, email: email.toLowerCase() };
+    if (dob) record.dob = dob;
+    users.push(record);
+    localStorage.setItem('_registered_users', JSON.stringify(users));
+  }
+
+  function isDuplicateUsername(username) {
+    var users = getRegisteredUsers();
+    var u = username.toLowerCase();
+    return users.some(function(user) {
+      return user.username.toLowerCase() === u;
+    });
+  }
+
+  function isDuplicateEmail(email) {
+    var users = getRegisteredUsers();
+    var e = email.toLowerCase();
+    return users.some(function(user) {
+      return user.email.toLowerCase() === e;
+    });
+  }
+
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+    successBanner.style.display = 'none';
+    successBanner.textContent = '';
+    alertSummary.style.display = 'none';
+    alertSummary.textContent = '';
+
+    clearAllErrors();
+
+    var usernameVal = document.getElementById('username').value;
+    var emailVal = document.getElementById('email').value;
+    var dobVal = document.getElementById('dob').value;
+    var passwordVal = document.getElementById('password').value;
+    var confirmVal = document.getElementById('confirmPassword').value;
+
+    var errors = [];
+    var firstErrorField = null;
+
+    // Validate username
+    var usernameErr = validateUsername(usernameVal);
+    if (usernameErr) {
+      errors.push(usernameErr);
+      showError('username', usernameErr);
+      if (!firstErrorField) firstErrorField = document.getElementById('username');
+    }
+
+    // Validate email
+    var emailErr = validateEmail(emailVal);
+    if (emailErr) {
+      errors.push(emailErr);
+      showError('email', emailErr);
+      if (!firstErrorField) firstErrorField = document.getElementById('email');
+    }
+
+    // Validate DOB
+    var dobErr = validateDob(dobVal);
+    if (dobErr) {
+      errors.push(dobErr);
+      showError('dob', dobErr);
+      if (!firstErrorField) firstErrorField = document.getElementById('dob');
+    }
+
+    // Validate password
+    var passwordErr = validatePassword(passwordVal);
+    if (passwordErr) {
+      errors.push(passwordErr);
+      showError('password', passwordErr);
+      if (!firstErrorField) firstErrorField = document.getElementById('password');
+    }
+
+    // Validate confirm password
+    var confirmErr = validateConfirmPassword(confirmVal, passwordVal);
+    if (confirmErr) {
+      errors.push(confirmErr);
+      showError('confirmPassword', confirmErr);
+      if (!firstErrorField) firstErrorField = document.getElementById('confirmPassword');
+    }
+
+    // Validate terms
+    var termsErr = validateTerms();
+    if (termsErr) {
+      errors.push(termsErr);
+      showError('terms', termsErr);
+      if (!firstErrorField) firstErrorField = document.getElementById('terms');
+    }
+
+    if (errors.length > 0) {
+      alertSummary.textContent = 'There are errors in your registration. Please correct the invalid input below.';
+      alertSummary.style.display = 'block';
+      if (firstErrorField) firstErrorField.focus();
+      return;
+    }
+
+    // Normalize values
+    var normalizedUsername = usernameVal.trim();
+    var normalizedEmail = emailVal.trim().toLowerCase();
+
+    // Check duplicates
+    var dupErrors = [];
+    if (isDuplicateUsername(normalizedUsername)) {
+      dupErrors.push('An account with this username already exists.');
+      showError('username', 'An account with this username already exists.');
+      if (!firstErrorField) firstErrorField = document.getElementById('username');
+    }
+    if (isDuplicateEmail(normalizedEmail)) {
+      dupErrors.push('An account with this email address already exists.');
+      showError('email', 'An account with this email address already exists.');
+      if (!firstErrorField) firstErrorField = document.getElementById('email');
+    }
+
+    if (dupErrors.length > 0) {
+      alertSummary.textContent = 'There is a problem: an account with these details already exists. Please use different credentials.';
+      alertSummary.style.display = 'block';
+      if (firstErrorField) firstErrorField.focus();
+      return;
+    }
+
+    // Save registration (no passwords stored)
+    var dobToStore = dobVal || null;
+    saveRegisteredUser(normalizedUsername, normalizedEmail, dobToStore);
+
+    successBanner.textContent = 'Registration successful! Welcome, ' + normalizedUsername + '.';
+    successBanner.style.display = 'block';
+    form.reset();
+    clearAllErrors();
+    successBanner.focus();
+  });
+})();
+</script>
+
+</body>
+</html>

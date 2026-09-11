@@ -1,0 +1,1 @@
+{"accepted":true,"message":"implementation 1 of 1 was written to /private/tmp/lab02-final-02785ac-q37max/Lab/Lab02/workspace/gui/direct/index.html."}

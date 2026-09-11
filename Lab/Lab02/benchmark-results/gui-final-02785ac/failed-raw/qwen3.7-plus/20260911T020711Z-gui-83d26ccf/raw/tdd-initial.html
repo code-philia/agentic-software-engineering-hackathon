@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Registration - Public Service Portal</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background-color: #e8edf2;
+  color: #1a1a2e;
+  line-height: 1.5;
+}
+
+header {
+  background-color: #0d1b2a;
+  color: #ffffff;
+  width: 100%;
+  padding: 1rem 2rem;
+  border-bottom: 4px solid #e67e22;
+}
+
+header h1 {
+  font-size: 1.4rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+main {
+  display: flex;
+  justify-content: center;
+  padding: 2rem 1rem;
+  min-height: calc(100vh - 60px);
+}
+
+.panel {
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.10);
+  padding: 2rem;
+  width: 100%;
+  max-width: 720px;
+}
+
+.panel h2 {
+  font-size: 1.25rem;
+  margin-bottom: 1.5rem;
+  color: #0d1b2a;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem 1.5rem;
+}
+
+@media (max-width: 560px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 0.25rem;
+}
+
+.field.full {
+  grid-column: 1 / -1;
+}
+
+label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+  color: #2c3e50;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="date"],
+input[type="password"] {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #b0bec5;
+  border-radius: 4px;
+  font-size: 1rem;
+  color: #1a1a2e;
+  background: #fafbfc;
+  transition: border-color 0.15s ease;
+}
+
+input:focus {
+  outline: none;
+  border-color: #e67e22;
+  box-shadow: 0 0 0 2px rgba(230,126,34,0.2);
+}
+
+input[aria-invalid="true"] {
+  border-color: #c0392b;
+  background: #fdf0ef;
+}
+
+.error-msg {
+  font-size: 0.8rem;
+  color: #c0392b;
+  min-height: 1.1em;
+  margin-top: 0.15rem;
+}
+
+.password-wrapper {
+  position: relative;
+}
+
+.password-wrapper input {
+  padding-right: 2.8rem;
+}
+
+.toggle-pw {
+  position: absolute;
+  right: 0.4rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.8rem;
+  color: #e67e22;
+  font-weight: 600;
+  padding: 0.2rem 0.4rem;
+  border-radius: 3px;
+}
+
+.toggle-pw:hover, .toggle-pw:focus {
+  background: rgba(230,126,34,0.1);
+  outline: none;
+}
+
+.checkbox-field {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.checkbox-field input[type="checkbox"] {
+  margin-top: 0.2rem;
+  width: 1.1rem;
+  height: 1.1rem;
+  accent-color: #e67e22;
+}
+
+.checkbox-field label {
+  font-weight: 400;
+  font-size: 0.875rem;
+  margin-bottom: 0;
+}
+
+.actions {
+  margin-top: 1.5rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btn-submit {
+  background-color: #e67e22;
+  color: #ffffff;
+  border: none;
+  padding: 0.65rem 2rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.btn-submit:hover {
+  background-color: #cf6d17;
+}
+
+.btn-submit:focus {
+  outline: 2px solid #0d1b2a;
+  outline-offset: 2px;
+}
+
+.success-banner {
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+  border-radius: 4px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  display: none;
+  text-align: center;
+  font-weight: 600;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+  white-space: nowrap;
+  border: 0;
+}
+</style>
+</head>
+<body>
+
+<header role="banner">
+  <h1>Public Service Portal</h1>
+</header>
+
+<main>
+  <div class="panel" role="main">
+    <h2>Create Your Account</h2>
+
+    <div id="successBanner" class="success-banner" role="alert" aria-live="polite"></div>
+
+    <form id="regForm" novalidate>
+      <div class="form-grid">
+
+        <div class="field">
+          <label for="username">Username <span aria-hidden="true">*</span></label>
+          <input type="text" id="username" name="username" required autocomplete="username" aria-required="true" aria-describedby="usernameErr">
+          <div id="usernameErr" class="error-msg" aria-live="polite"></div>
+        </div>
+
+        <div class="field">
+          <label for="email">Email Address <span aria-hidden="true">*</span></label>
+          <input type="email" id="email" name="email" required autocomplete="email" aria-required="true" aria-describedby="emailErr">
+          <div id="emailErr" class="error-msg" aria-live="polite"></div>
+        </div>
+
+        <div class="field">
+          <label for="dob">Date of Birth</label>
+          <input type="date" id="dob" name="dob" autocomplete="bday" aria-describedby="dobErr">
+          <div id="dobErr" class="error-msg" aria-live="polite"></div>
+        </div>
+
+        <div class="field">
+          <label for="password">Password <span aria-hidden="true">*</span></label>
+          <div class="password-wrapper">
+            <input type="password" id="password" name="password" required autocomplete="new-password" aria-required="true" aria-describedby="passwordErr">
+            <button type="button" class="toggle-pw" data-target="password" aria-label="Show password">Show</button>
+          </div>
+          <div id="passwordErr" class="error-msg" aria-live="polite"></div>
+        </div>
+
+        <div class="field full">
+          <label for="confirmPassword">Confirm Password <span aria-hidden="true">*</span></label>
+          <div class="password-wrapper">
+            <input type="password" id="confirmPassword" name="confirmPassword" required autocomplete="new-password" aria-required="true" aria-describedby="confirmPasswordErr">
+            <button type="button" class="toggle-pw" data-target="confirmPassword" aria-label="Show confirm password">Show</button>
+          </div>
+          <div id="confirmPasswordErr" class="error-msg" aria-live="polite"></div>
+        </div>
+
+        <div class="field full checkbox-field">
+          <input type="checkbox" id="terms" name="terms" required aria-required="true" aria-describedby="termsErr">
+          <label for="terms">I accept the <a href="#" onclick="return false;">Terms of Service</a> and <a href="#" onclick="return false;">Privacy Policy</a>. <span aria-hidden="true">*</span></label>
+        </div>
+        <div class="field full">
+          <div id="termsErr" class="error-msg" aria-live="polite"></div>
+        </div>
+
+      </div>
+
+      <div class="actions">
+        <button type="submit" class="btn-submit">Register</button>
+      </div>
+    </form>
+  </div>
+</main>
+
+<script>
+(function() {
+  var form = document.getElementById('regForm');
+  var successBanner = document.getElementById('successBanner');
+
+  // Toggle password visibility
+  document.querySelectorAll('.toggle-pw').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var targetId = this.getAttribute('data-target');
+      var input = document.getElementById(targetId);
+      if (input.type === 'password') {
+        input.type = 'text';
+        this.textContent = 'Hide';
+        this.setAttribute('aria-label', 'Hide password');
+      } else {
+        input.type = 'password';
+        this.textContent = 'Show';
+        this.setAttribute('aria-label', 'Show password');
+      }
+      input.focus();
+    });
+  });
+
+  function showError(fieldId, msg) {
+    var errEl = document.getElementById(fieldId + 'Err');
+    var input = document.getElementById(fieldId);
+    if (errEl) errEl.textContent = msg;
+    if (input) input.setAttribute('aria-invalid', 'true');
+  }
+
+  function clearError(fieldId) {
+    var errEl = document.getElementById(fieldId + 'Err');
+    var input = document.getElementById(fieldId);
+    if (errEl) errEl.textContent = '';
+    if (input) input.removeAttribute('aria-invalid');
+  }
+
+  function validateField(name, value) {
+    switch(name) {
+      case 'username':
+        if (!value || !value.trim()) return 'Username is required.';
+        if (value.trim().length < 3) return 'Username must be at least 3 characters.';
+        if (value.trim().length > 30) return 'Username must be 30 characters or fewer.';
+        if (!/^[a-zA-Z0-9_]+$/.test(value.trim())) return 'Username may only contain letters, numbers, and underscores.';
+        return null;
+      case 'email':
+        if (!value || !value.trim()) return 'Email address is required.';
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())) return 'Please enter a valid email address.';
+        return null;
+      case 'dob':
+        if (!value) return null;
+        var d = new Date(value);
+        if (isNaN(d.getTime())) return 'Please enter a valid date.';
+        var now = new Date();
+        if (d > now) return 'Date of birth cannot be in the future.';
+        return null;
+      case 'password':
+        if (!value) return 'Password is required.';
+        if (value.length < 8) return 'Password must be at least 8 characters.';
+        return null;
+      case 'confirmPassword':
+        if (!value) return 'Please confirm your password.';
+        var pw = document.getElementById('password').value;
+        if (value !== pw) return 'Passwords do not match.';
+        return null;
+      case 'terms':
+        var cb = document.getElementById('terms');
+        if (!cb.checked) return 'You must accept the Terms of Service.';
+        return null;
+      default:
+        return null;
+    }
+  }
+
+  // Real-time validation on blur
+  ['username','email','dob','password','confirmPassword'].forEach(function(id) {
+    var el = document.getElementById(id);
+    el.addEventListener('blur', function() {
+      var err = validateField(id, el.value);
+      if (err) showError(id, err);
+      else clearError(id);
+    });
+    el.addEventListener('input', function() {
+      if (el.getAttribute('aria-invalid') === 'true') {
+        var err = validateField(id, el.value);
+        if (!err) clearError(id);
+      }
+    });
+  });
+
+  document.getElementById('terms').addEventListener('change', function() {
+    var err = validateField('terms');
+    if (err) showError('terms', err);
+    else clearError('terms');
+  });
+
+  // Check duplicate registration from sessionStorage
+  function getRegisteredUsers() {
+    try {
+      var data = sessionStorage.getItem('_registered_users');
+      return data ? JSON.parse(data) : [];
+    } catch(e) {
+      return [];
+    }
+  }
+
+  function saveRegisteredUser(username, email) {
+    var users = getRegisteredUsers();
+    users.push({ username: username.toLowerCase(), email: email.toLowerCase() });
+    sessionStorage.setItem('_registered_users', JSON.stringify(users));
+  }
+
+  function isDuplicate(username, email) {
+    var users = getRegisteredUsers();
+    var u = username.toLowerCase();
+    var e = email.toLowerCase();
+    return users.some(function(user) {
+      return user.username === u || user.email === e;
+    });
+  }
+
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+    successBanner.style.display = 'none';
+    successBanner.textContent = '';
+
+    var fields = ['username','email','dob','password','confirmPassword'];
+    var hasError = false;
+    var firstError = null;
+
+    fields.forEach(function(id) {
+      var el = document.getElementById(id);
+      var err = validateField(id, el.value);
+      if (err) {
+        showError(id, err);
+        hasError = true;
+        if (!firstError) firstError = el;
+      } else {
+        clearError(id);
+      }
+    });
+
+    var termsErr = validateField('terms');
+    if (termsErr) {
+      showError('terms', termsErr);
+      hasError = true;
+      if (!firstError) firstError = document.getElementById('terms');
+    } else {
+      clearError('terms');
+    }
+
+    if (hasError) {
+      if (firstError) firstError.focus();
+      return;
+    }
+
+    var username = document.getElementById('username').value.trim();
+    var email = document.getElementById('email').value.trim();
+
+    if (isDuplicate(username, email)) {
+      var dupMsg = 'An account with this username or email already exists.';
+      showError('username', '');
+      showError('email', dupMsg);
+      document.getElementById('email').focus();
+      return;
+    }
+
+    saveRegisteredUser(username, email);
+
+    successBanner.textContent = 'Registration successful! Welcome, ' + username + '.';
+    successBanner.style.display = 'block';
+    form.reset();
+
+    // Clear all error states
+    fields.forEach(function(id) { clearError(id); });
+    clearError('terms');
+
+    successBanner.focus();
+  });
+})();
+</script>
+
+</body>
+</html>

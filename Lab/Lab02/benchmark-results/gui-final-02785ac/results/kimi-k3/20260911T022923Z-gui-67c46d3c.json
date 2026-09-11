@@ -1,0 +1,146 @@
+{
+  "outcome": "GENERATION_ERROR",
+  "runId": "20260911T022923Z-gui-67c46d3c",
+  "runRoot": "/private/tmp/lab02-final-02785ac-kimi/Lab/Lab02/runs/20260911T022923Z-gui-67c46d3c",
+  "workspaceRoot": "/private/tmp/lab02-final-02785ac-kimi/Lab/Lab02/workspace/gui",
+  "modelConfiguration": {
+    "envFile": ".env",
+    "model": "kimi-k3",
+    "inferencePolicy": {
+      "id": "classroom-model-policy-v2",
+      "model": "kimi-k3",
+      "mode": "non-thinking",
+      "temperature": 0,
+      "providerData": {
+        "thinking": {
+          "type": "disabled"
+        }
+      }
+    }
+  },
+  "modelPerformance": {
+    "model": "kimi-k3",
+    "stages": 5,
+    "durationMs": 1746450,
+    "requests": 9,
+    "inputTokens": 45344,
+    "outputTokens": 28138,
+    "totalTokens": 73482,
+    "calls": [
+      {
+        "stage": "direct",
+        "durationMs": 40292,
+        "usage": {
+          "requests": 1,
+          "inputTokens": 735,
+          "outputTokens": 5005,
+          "totalTokens": 5740,
+          "requestUsage": [
+            {
+              "inputTokens": 735,
+              "outputTokens": 5005,
+              "totalTokens": 5740
+            }
+          ]
+        },
+        "status": "completed"
+      },
+      {
+        "stage": "test_generation",
+        "durationMs": 344659,
+        "usage": {
+          "requests": 2,
+          "inputTokens": 3725,
+          "outputTokens": 3525,
+          "totalTokens": 7250,
+          "requestUsage": [
+            {
+              "inputTokens": 0,
+              "outputTokens": 0,
+              "totalTokens": 0
+            },
+            {
+              "inputTokens": 3725,
+              "outputTokens": 3525,
+              "totalTokens": 7250
+            }
+          ]
+        },
+        "status": "completed"
+      },
+      {
+        "stage": "test_repair",
+        "durationMs": 342513,
+        "usage": {
+          "requests": 2,
+          "inputTokens": 8921,
+          "outputTokens": 3543,
+          "totalTokens": 12464,
+          "requestUsage": [
+            {
+              "inputTokens": 0,
+              "outputTokens": 0,
+              "totalTokens": 0
+            },
+            {
+              "inputTokens": 8921,
+              "outputTokens": 3543,
+              "totalTokens": 12464
+            }
+          ]
+        },
+        "status": "completed"
+      },
+      {
+        "stage": "test_repair",
+        "durationMs": 147677,
+        "usage": {
+          "requests": 1,
+          "inputTokens": 8193,
+          "outputTokens": 5438,
+          "totalTokens": 13631,
+          "requestUsage": [
+            {
+              "inputTokens": 8193,
+              "outputTokens": 5438,
+              "totalTokens": 13631
+            }
+          ]
+        },
+        "status": "completed"
+      },
+      {
+        "stage": "tdd_repair",
+        "durationMs": 871309,
+        "usage": {
+          "requests": 3,
+          "inputTokens": 23770,
+          "outputTokens": 10627,
+          "totalTokens": 34397,
+          "requestUsage": [
+            {
+              "inputTokens": 0,
+              "outputTokens": 0,
+              "totalTokens": 0
+            },
+            {
+              "inputTokens": 13802,
+              "outputTokens": 5015,
+              "totalTokens": 18817
+            },
+            {
+              "inputTokens": 9968,
+              "outputTokens": 5612,
+              "totalTokens": 15580
+            }
+          ]
+        },
+        "status": "failed"
+      }
+    ]
+  },
+  "error": {
+    "name": "GenerationArtifactError",
+    "message": "The operation was aborted due to timeout"
+  }
+}

@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Register — Public Service</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--navy:#0a2a5e;--orange:#e87722;--orange-dark:#c9641a;--bg:#eef2f7;--panel:#fff;--text:#1a2b42;--muted:#5a6b80;--error:#c0392b;--success:#1a8a5c;--border:#c5d0de;--focus:#e87722}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text);line-height:1.5;min-height:100vh;display:flex;flex-direction:column}
+header.service-header{background:var(--navy);width:100%;padding:1.25rem 1.5rem;display:flex;align-items:center;gap:.75rem}
+header.service-header .logo{width:32px;height:32px;background:var(--orange);border-radius:6px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:1.1rem;flex-shrink:0}
+header.service-header h1{color:#fff;font-size:1.25rem;font-weight:600;letter-spacing:.02em}
+header.service-header .accent-bar{margin-left:auto;width:48px;height:4px;background:var(--orange);border-radius:2px}
+main{flex:1;display:flex;align-items:center;justify-content:center;padding:2rem 1rem}
+.panel{background:var(--panel);border-radius:12px;box-shadow:0 4px 24px rgba(10,37,64,.1);padding:2rem;width:100%;max-width:640px}
+.panel h2{font-size:1.5rem;margin-bottom:.25rem;color:var(--navy)}
+.panel .subtitle{color:var(--muted);font-size:.9rem;margin-bottom:1.5rem}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem 1.25rem}
+.field{display:flex;flex-direction:column;gap:.3rem}
+.field.full{grid-column:1/-1}
+.field.dob{grid-column:1}
+label{font-size:.85rem;font-weight:600;color:var(--navy)}
+input[type=text],input[type=email],input[type=date],input[type=password]{width:100%;padding:.6rem .75rem;border:1.5px solid var(--border);border-radius:8px;font-size:.95rem;font-family:inherit;color:var(--text);background:#fff;transition:border-color .15s,box-shadow .15s}
+input:focus{outline:2px solid var(--focus);outline-offset:2px;border-color:var(--focus)}
+input[aria-invalid="true"]{border-color:var(--error)}
+input[aria-invalid="true"]:focus{outline:2px solid var(--error);outline-offset:2px;box-shadow:0 0 0 3px rgba(192,57,43,.15)}
+.error-msg{color:var(--error);font-size:.8rem;min-height:0;display:none}
+.error-msg.show{display:block}
+.hint{color:var(--muted);font-size:.78rem}
+.pw-wrap{position:relative}
+.pw-wrap input{padding-right:2.75rem}
+.pw-toggle{position:absolute;right:.5rem;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--navy);cursor:pointer;font-size:.78rem;font-weight:600;padding:.25rem .4rem;border-radius:4px}
+.pw-toggle:hover{background:var(--bg)}
+.pw-toggle:focus{outline:2px solid var(--focus);outline-offset:1px}
+.pw-strength{font-size:.78rem;margin-top:.2rem;min-height:1rem}
+.pw-strength.weak{color:var(--error)}
+.pw-strength.fair{color:#d4a017}
+.pw-strength.strong{color:var(--success)}
+.terms-field{display:flex;flex-wrap:wrap;align-items:flex-start;gap:.6rem;grid-column:1/-1}
+.terms-field input[type=checkbox]{width:18px;height:18px;margin-top:.15rem;accent-color:var(--orange);cursor:pointer;flex-shrink:0}
+.terms-field input[type=checkbox]:focus{outline:2px solid var(--focus);outline-offset:2px}
+.terms-field label{font-size:.88rem;font-weight:400;color:var(--text);cursor:pointer}
+.terms-field label a{color:var(--orange-dark);text-decoration:underline}
+.terms-field .error-msg{width:100%;margin-top:.2rem}
+.submit-row{grid-column:1/-1;margin-top:.5rem}
+button[type=submit]{width:100%;padding:.8rem 1.5rem;background:var(--orange);color:#fff;border:none;border-radius:8px;font-size:1rem;font-weight:600;cursor:pointer;transition:background .15s,transform .05s}
+button[type=submit]:hover{background:var(--orange-dark)}
+button[type=submit]:active{transform:scale(.98)}
+button[type=submit]:focus{outline:2px solid var(--focus);outline-offset:2px}
+.success-banner{background:#e6f5ee;border:1.5px solid var(--success);color:var(--success);padding:.8rem 1rem;border-radius:8px;margin-bottom:1.25rem;font-size:.9rem;display:none}
+.success-banner.show{display:block}
+.alert-summary{background:#fdf0ee;border:1.5px solid var(--error);color:var(--error);padding:.8rem 1rem;border-radius:8px;margin-bottom:1.25rem;font-size:.9rem;display:none}
+.alert-summary.show{display:block}
+@media(max-width:560px){.form-grid{grid-template-columns:1fr}.field.dob{grid-column:1}.panel{padding:1.5rem 1.25rem}}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0}
+</style>
+</head>
+<body>
+<header class="service-header" role="banner">
+<div class="logo" aria-hidden="true">P</div>
+<h1>Public Service Portal</h1>
+<div class="accent-bar" aria-hidden="true"></div>
+</header>
+<main>
+<div class="panel">
+<h2>Create your account</h2>
+<p class="subtitle">Fill in the details below to register.</p>
+<div class="success-banner" id="successBanner" role="status" aria-live="polite" tabindex="-1"></div>
+<div class="alert-summary" id="alertSummary" role="alert" aria-live="assertive"></div>
+<form id="regForm" novalidate>
+<div class="form-grid">
+<div class="field">
+<label for="username">Username</label>
+<input type="text" id="username" name="username" autocomplete="username" aria-describedby="usernameErr">
+<div class="error-msg" id="usernameErr"></div>
+</div>
+<div class="field">
+<label for="email">Email address</label>
+<input type="email" id="email" name="email" autocomplete="email" aria-describedby="emailErr">
+<div class="error-msg" id="emailErr"></div>
+</div>
+<div class="field dob">
+<label for="dob">Date of birth <span class="hint">(optional)</span></label>
+<input type="date" id="dob" name="dob" aria-describedby="dobErr">
+<div class="error-msg" id="dobErr"></div>
+</div>
+<div class="field">
+<label for="password">Password</label>
+<div class="pw-wrap">
+<input type="password" id="password" name="password" autocomplete="new-password" aria-describedby="passwordErr pwStrength">
+<button type="button" class="pw-toggle" id="pwToggle" aria-label="Show password">Show</button>
+</div>
+<div class="error-msg" id="passwordErr"></div>
+<div class="pw-strength" id="pwStrength" aria-live="polite"></div>
+</div>
+<div class="field full">
+<label for="confirmPassword">Confirm password</label>
+<div class="pw-wrap">
+<input type="password" id="confirmPassword" name="confirmPassword" autocomplete="new-password" aria-describedby="confirmErr">
+</div>
+<div class="error-msg" id="confirmErr"></div>
+</div>
+<div class="terms-field">
+<input type="checkbox" id="terms" name="terms" aria-describedby="termsErr">
+<label for="terms">I accept the Terms of Service and Privacy Policy</label>
+<div class="error-msg" id="termsErr"></div>
+</div>
+<div class="submit-row">
+<button type="submit" id="submitBtn">Create account</button>
+</div>
+</div>
+</form>
+</div>
+</main>
+<script>
+(function(){
+var form=document.getElementById('regForm');
+var STORE_KEY='registered_users';
+var successBanner=document.getElementById('successBanner');
+var alertSummary=document.getElementById('alertSummary');
+
+function getUsers(){try{return JSON.parse(localStorage.getItem(STORE_KEY))||[]}catch(e){return[]}}
+function saveUsers(u){localStorage.setItem(STORE_KEY,JSON.stringify(u))}
+function showError(id,msg){var el=document.getElementById(id);if(msg){el.textContent=msg;el.classList.add('show')}else{el.textContent='';el.classList.remove('show')}}
+function setInvalid(inputId,invalid){var el=document.getElementById(inputId);if(invalid){el.setAttribute('aria-invalid','true')}else{el.setAttribute('aria-invalid','false')}}
+function clearInvalid(inputId){var el=document.getElementById(inputId);el.removeAttribute('aria-invalid')}
+function showSummary(msg){alertSummary.textContent=msg;alertSummary.classList.add('show')}
+function hideSummary(){alertSummary.textContent='';alertSummary.classList.remove('show')}
+
+function validateUsername(){
+var raw=document.getElementById('username').value;
+var v=raw.trim();
+if(!v){showError('usernameErr','Username is required.');setInvalid('username',true);return false}
+if(v.length<3){showError('usernameErr','Username must be at least 3 characters.');setInvalid('username',true);return false}
+if(v.length>20){showError('usernameErr','Username must be 20 characters or fewer.');setInvalid('username',true);return false}
+if(!/^[a-zA-Z]/.test(v)){showError('usernameErr','Username must start with a letter.');setInvalid('username',true);return false}
+if(!/^[a-zA-Z][a-zA-Z0-9_]*$/.test(v)){showError('usernameErr','Use only letters, numbers, and underscores.');setInvalid('username',true);return false}
+showError('usernameErr','');setInvalid('username',false);return true}
+
+function validateEmail(){
+var raw=document.getElementById('email').value;
+var v=raw.trim();
+if(!v){showError('emailErr','Email is required.');setInvalid('email',true);return false}
+if(/\s/.test(v)){showError('emailErr','Email must not contain spaces.');setInvalid('email',true);return false}
+var atCount=(v.match(/@/g)||[]).length;
+if(atCount!==1){showError('emailErr','Enter a valid email address.');setInvalid('email',true);return false}
+var parts=v.split('@');
+var local=parts[0],domain=parts[1];
+if(!local){showError('emailErr','Enter a valid email address.');setInvalid('email',true);return false}
+if(local[0]==='.'||local[local.length-1]==='.'){showError('emailErr','Enter a valid email address.');setInvalid('email',true);return false}
+if(local.indexOf('..')!==-1){showError('emailErr','Enter a valid email address.');setInvalid('email',true);return false}
+if(!domain){showError('emailErr','Enter a valid email address.');setInvalid('email',true);return false}
+var labels=domain.split('.');
+if(labels.length<2){showError('emailErr','Enter a valid email address.');setInvalid('email',true);return false}
+for(var i=0;i<labels.length;i++){
+if(!labels[i]){showError('emailErr','Enter a valid email address.');setInvalid('email',true);return false}
+if(labels[i][0]==='-'||labels[i][labels[i].length-1]==='-'){showError('emailErr','Enter a valid email address.');setInvalid('email',true);return false}
+}
+showError('emailErr','');setInvalid('email',false);return true}
+
+function validateDob(){
+var v=document.getElementById('dob').value;
+if(!v){showError('dobErr','');clearInvalid('dob');return true}
+if(!/^\d{4}-\d{2}-\d{2}$/.test(v)){showError('dobErr','Enter a valid date (YYYY-MM-DD).');setInvalid('dob',true);return false}
+var d=new Date(v+'T00:00:00');
+if(isNaN(d.getTime())){showError('dobErr','Enter a valid date.');setInvalid('dob',true);return false}
+var now=new Date();
+if(d>now){showError('dobErr','Date of birth cannot be in the future.');setInvalid('dob',true);return false}
+var minDate=new Date('1900-01-01T00:00:00');
+if(d<minDate){showError('dobErr','Enter a date after 1900.');setInvalid('dob',true);return false}
+showError('dobErr','');setInvalid('dob',false);return true}
+
+function passwordStrength(v){
+var s=0;if(v.length>=10)s++;if(v.length>=14)s++;if(/[a-z]/.test(v)&&/[A-Z]/.test(v))s++;if(/\d/.test(v))s++;if(/[^a-zA-Z0-9]/.test(v))s++;return s}
+
+function validatePassword(){
+var v=document.getElementById('password').value;
+var stEl=document.getElementById('pwStrength');
+if(!v){showError('passwordErr','Password is required.');setInvalid('password',true);stEl.textContent='';return false}
+if(v.length<10){showError('passwordErr','Password must be at least 10 characters.');setInvalid('password',true);stEl.textContent='';return false}
+if(v.length>64){showError('passwordErr','Password must be 64 characters or fewer.');setInvalid('password',true);stEl.textContent='';return false}
+if(!/[a-zA-Z]/.test(v)){showError('passwordErr','Password must contain at least one letter.');setInvalid('password',true);stEl.textContent='';return false}
+if(!/\d/.test(v)){showError('passwordErr','Password must contain at least one digit.');setInvalid('password',true);stEl.textContent='';return false}
+showError('passwordErr','');setInvalid('password',false);
+var s=passwordStrength(v);
+stEl.className='pw-strength';
+if(s<=2){stEl.classList.add('weak');stEl.textContent='Weak password — add length, mixed case, numbers, and symbols.'}
+else if(s<=3){stEl.classList.add('fair');stEl.textContent='Fair password strength.'}
+else{stEl.classList.add('strong');stEl.textContent='Strong password.'}
+return true}
+
+function validateConfirm(){
+var v=document.getElementById('confirmPassword').value;
+var p=document.getElementById('password').value;
+if(!v){showError('confirmErr','Please confirm your password.');setInvalid('confirmPassword',true);return false}
+if(v!==p){showError('confirmErr','Passwords do not match.');setInvalid('confirmPassword',true);return false}
+showError('confirmErr','');setInvalid('confirmPassword',false);return true}
+
+function validateTerms(){
+var c=document.getElementById('terms').checked;
+if(!c){showError('termsErr','You must accept the Terms of Service.');return false}
+showError('termsErr','');return true}
+
+function checkDuplicate(username,email){
+var users=getUsers();
+var unLower=username.toLowerCase();
+var emLower=email.toLowerCase();
+return users.some(function(u){return u.username.toLowerCase()===unLower||u.email.toLowerCase()===emLower})}
+
+form.addEventListener('submit',function(e){
+e.preventDefault();
+successBanner.classList.remove('show');
+hideSummary();
+var results={
+username:validateUsername(),
+email:validateEmail(),
+dob:validateDob(),
+password:validatePassword(),
+confirm:validateConfirm(),
+terms:validateTerms()
+};
+var allValid=results.username&&results.email&&results.dob&&results.password&&results.confirm&&results.terms;
+if(!allValid){
+var msgs=[];
+if(!results.username)msgs.push('username');
+if(!results.email)msgs.push('email');
+if(!results.dob)msgs.push('date of birth');
+if(!results.password)msgs.push('password');
+if(!results.confirm)msgs.push('password confirmation');
+if(!results.terms)msgs.push('terms acceptance');
+showSummary('Please correct the following errors: '+msgs.join(', ')+'.');
+var order=['username','email','dob','password','confirmPassword','terms'];
+var firstInvalid=null;
+for(var i=0;i<order.length;i++){
+var id=order[i];
+var el=document.getElementById(id);
+if(el.getAttribute('aria-invalid')==='true'){firstInvalid=el;break}
+}
+if(firstInvalid)firstInvalid.focus();
+return;
+}
+var username=document.getElementById('username').value.trim();
+var email=document.getElementById('email').value.trim().toLowerCase();
+if(checkDuplicate(username,email)){
+showError('usernameErr','This username is already registered.');
+setInvalid('username',true);
+showError('emailErr','This email is already registered.');
+setInvalid('email',true);
+showSummary('An account with this username or email already exists. Please use different details or log in.');
+document.getElementById('username').focus();
+return;
+}
+var dob=document.getElementById('dob').value;
+var users=getUsers();
+users.push({username:username,email:email,dob:dob||null,createdAt:new Date().toISOString()});
+saveUsers(users);
+form.reset();
+document.querySelectorAll('[aria-invalid]').forEach(function(el){el.removeAttribute('aria-invalid')});
+document.getElementById('pwStrength').textContent='';
+hideSummary();
+successBanner.textContent='Registration successful! Welcome, '+username+'. You can now sign in.';
+successBanner.classList.add('show');
+successBanner.focus();
+});
+
+['username','email','dob','password','confirmPassword'].forEach(function(id){
+var el=document.getElementById(id);
+el.addEventListener('blur',function(){
+if(id==='username')validateUsername();
+else if(id==='email')validateEmail();
+else if(id==='dob')validateDob();
+else if(id==='password')validatePassword();
+else if(id==='confirmPassword')validateConfirm();
+});
+el.addEventListener('input',function(){
+var errId=id+'Err';
+showError(errId,'');
+clearInvalid(id);
+if(id==='password'){
+var v=this.value;
+var stEl=document.getElementById('pwStrength');
+if(v){
+var s=passwordStrength(v);
+stEl.className='pw-strength';
+if(s<=2){stEl.classList.add('weak');stEl.textContent='Weak'}
+else if(s<=3){stEl.classList.add('fair');stEl.textContent='Fair'}
+else{stEl.classList.add('strong');stEl.textContent='Strong'}
+}else{stEl.textContent=''}
+}
+});
+});
+document.getElementById('terms').addEventListener('change',validateTerms);
+
+var pwToggle=document.getElementById('pwToggle');
+var passwordInput=document.getElementById('password');
+var confirmInput=document.getElementById('confirmPassword');
+pwToggle.addEventListener('click',function(){
+var isPw=passwordInput.type==='password';
+passwordInput.type=isPw?'text':'password';
+confirmInput.type=isPw?'text':'password';
+pwToggle.textContent=isPw?'Hide':'Show';
+pwToggle.setAttribute('aria-label',isPw?'Hide password':'Show password');
+});
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,77 @@
+{
+  "outcome": "RUN_ERROR",
+  "runId": "20260911T020020Z-gui-67241272",
+  "runRoot": "/private/tmp/lab02-final-02785ac-kimi/Lab/Lab02/runs/20260911T020020Z-gui-67241272",
+  "workspaceRoot": "/private/tmp/lab02-final-02785ac-kimi/Lab/Lab02/workspace/gui",
+  "modelConfiguration": {
+    "envFile": ".env",
+    "model": "kimi-k3",
+    "inferencePolicy": {
+      "id": "classroom-model-policy-v2",
+      "model": "kimi-k3",
+      "mode": "non-thinking",
+      "temperature": 0,
+      "providerData": {
+        "thinking": {
+          "type": "disabled"
+        }
+      }
+    }
+  },
+  "modelPerformance": {
+    "model": "kimi-k3",
+    "stages": 2,
+    "durationMs": 452996,
+    "requests": 3,
+    "inputTokens": 4215,
+    "outputTokens": 9696,
+    "totalTokens": 13911,
+    "calls": [
+      {
+        "stage": "direct",
+        "durationMs": 72123,
+        "usage": {
+          "requests": 1,
+          "inputTokens": 721,
+          "outputTokens": 5383,
+          "totalTokens": 6104,
+          "requestUsage": [
+            {
+              "inputTokens": 721,
+              "outputTokens": 5383,
+              "totalTokens": 6104
+            }
+          ]
+        },
+        "status": "completed"
+      },
+      {
+        "stage": "test_generation",
+        "durationMs": 380873,
+        "usage": {
+          "requests": 2,
+          "inputTokens": 3494,
+          "outputTokens": 4313,
+          "totalTokens": 7807,
+          "requestUsage": [
+            {
+              "inputTokens": 0,
+              "outputTokens": 0,
+              "totalTokens": 0
+            },
+            {
+              "inputTokens": 3494,
+              "outputTokens": 4313,
+              "totalTokens": 7807
+            }
+          ]
+        },
+        "status": "completed"
+      }
+    ]
+  },
+  "error": {
+    "name": "Error",
+    "message": "Request timed out."
+  }
+}

@@ -1,0 +1,385 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Create your account</title>
+<style>
+  *,*::before,*::after{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+    color:#0f1b2d;
+    background:#eaf1f8;
+    min-height:100vh;
+    display:flex;flex-direction:column;
+  }
+  .skip{
+    position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden;
+  }
+  .skip:focus{
+    position:static;width:auto;height:auto;padding:.5rem 1rem;background:#0f1b2d;color:#fff;
+  }
+  header.site{
+    background:#0f1b2d;color:#fff;
+    padding:1rem 1.25rem;
+    border-bottom:4px solid #e87722;
+  }
+  header.site .wrap{
+    max-width:72rem;margin:0 auto;display:flex;align-items:center;gap:1rem;
+  }
+  header.site .mark{
+    width:2.25rem;height:2.25rem;border-radius:.5rem;
+    background:#e87722;display:inline-flex;align-items:center;justify-content:center;
+    font-weight:700;color:#fff;letter-spacing:.03em;
+  }
+  header.site h1{font-size:1.15rem;margin:0;font-weight:600}
+  header.site p{margin:0;font-size:.85rem;color:#cbd5e1}
+  main{
+    flex:1;display:flex;justify-content:center;align-items:flex-start;
+    padding:2rem 1rem 3rem;
+  }
+  .panel{
+    background:#fff;width:100%;max-width:38rem;
+    border-radius:.75rem;
+    box-shadow:0 1px 2px rgba(15,27,45,.06),0 8px 24px rgba(15,27,45,.08);
+    padding:1.75rem;
+  }
+  .panel h2{
+    margin:0 0 .25rem;font-size:1.35rem;color:#0f1b2d;
+  }
+  .panel .lede{margin:0 0 1.25rem;color:#475569;font-size:.95rem}
+  fieldset{
+    border:0;padding:0;margin:0 0 1rem;
+  }
+  fieldset.row{
+    display:grid;grid-template-columns:1fr 1fr;gap:1rem;
+  }
+  @media (max-width:560px){
+    fieldset.row{grid-template-columns:1fr}
+  }
+  label{
+    display:block;font-weight:600;font-size:.9rem;margin-bottom:.35rem;color:#1e293b;
+  }
+  .req::after{content:" *";color:#c2410c}
+  .opt{color:#64748b;font-weight:400}
+  .hint{
+    display:block;font-size:.8rem;color:#64748b;margin-top:.3rem;
+  }
+  input[type=text],input[type=email],input[type=date],input[type=password]{
+    width:100%;font:inherit;color:#0f1b2d;
+    padding:.6rem .7rem;border:1px solid #cbd5e1;border-radius:.5rem;
+    background:#fff;
+  }
+  input:focus{outline:2px solid #e87722;outline-offset:1px;border-color:#e87722}
+  input[aria-invalid="true"]{border-color:#b91c1c;background:#fef2f2}
+  .err{
+    color:#b91c1c;font-size:.82rem;margin-top:.3rem;
+    min-height:1.1em;
+  }
+  .pwwrap{position:relative}
+  .pwwrap input{padding-right:4rem}
+  .toggle{
+    position:absolute;right:.35rem;top:50%;transform:translateY(-50%);
+    background:transparent;border:0;color:#0f1b2d;font:inherit;font-size:.85rem;
+    padding:.35rem .55rem;border-radius:.375rem;cursor:pointer;
+  }
+  .toggle:hover{background:#f1f5f9}
+  .toggle:focus{outline:2px solid #e87722;outline-offset:1px}
+  .check{
+    display:flex;align-items:flex-start;gap:.6rem;margin:.25rem 0 1.25rem;
+    font-size:.92rem;color:#1e293b;
+  }
+  .check input{margin-top:.25rem;width:1.05rem;height:1.05rem;accent-color:#e87722}
+  .check a{color:#0f1b2d}
+  .check a:focus, .check a:hover{color:#e87722}
+  button.primary{
+    appearance:none;border:0;cursor:pointer;
+    background:#e87722;color:#fff;font:inherit;font-weight:600;
+    padding:.75rem 1.25rem;border-radius:.5rem;width:100%;
+    transition:background .15s ease;
+  }
+  button.primary:hover{background:#cf6a1d}
+  button.primary:focus{outline:2px solid #0f1b2d;outline-offset:2px}
+  button.primary[disabled]{background:#f1a777;cursor:not-allowed}
+  .status{
+    margin-top:1rem;padding:.85rem 1rem;border-radius:.5rem;font-size:.92rem;
+    display:none;
+  }
+  .status.show{display:block}
+  .status.ok{background:#ecfdf5;color:#065f46;border:1px solid #a7f3d0}
+  .status.err{background:#fef2f2;color:#991b1b;border:1px solid #fecaca}
+  .login{
+    margin-top:1rem;text-align:center;font-size:.9rem;color:#475569;
+  }
+  .login a{color:#0f1b2d;font-weight:600}
+  .login a:hover{color:#e87722}
+  footer.site{
+    text-align:center;padding:1rem;color:#475569;font-size:.82rem;
+  }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to main content</a>
+<header class="site" role="banner">
+  <div class="wrap">
+    <span class="mark" aria-hidden="true">CS</span>
+    <div>
+      <h1>Citizen Service Portal</h1>
+      <p>Create an account to access public services</p>
+    </div>
+  </div>
+</header>
+<main id="main">
+  <section class="panel" aria-labelledby="reg-title">
+    <h2 id="reg-title">Create your account</h2>
+    <p class="lede">All fields marked with an asterisk are required.</p>
+    <form id="reg" novalidate>
+      <div class="status" id="status" role="status" aria-live="polite"></div>
+
+      <fieldset class="row">
+        <div>
+          <label for="username" class="req">Username</label>
+          <input id="username" name="username" type="text"
+                 autocomplete="username" required minlength="3" maxlength="24"
+                 pattern="[A-Za-z0-9_]+" spellcheck="false"
+                 aria-describedby="username-hint username-err">
+          <span class="hint" id="username-hint">3–24 characters, letters, numbers, underscore.</span>
+          <span class="err" id="username-err" aria-live="polite"></span>
+        </div>
+        <div>
+          <label for="email" class="req">Email address</label>
+          <input id="email" name="email" type="email"
+                 autocomplete="email" required inputmode="email" spellcheck="false"
+                 aria-describedby="email-err">
+          <span class="hint">We will send a verification link.</span>
+          <span class="err" id="email-err" aria-live="polite"></span>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <label for="dob">Date of birth <span class="opt">(optional)</span></label>
+        <input id="dob" name="dob" type="date" autocomplete="bday"
+               aria-describedby="dob-err">
+        <span class="err" id="dob-err" aria-live="polite"></span>
+      </fieldset>
+
+      <fieldset class="row">
+        <div>
+          <label for="password" class="req">Password</label>
+          <div class="pwwrap">
+            <input id="password" name="password" type="password"
+                   autocomplete="new-password" required minlength="8" maxlength="128"
+                   aria-describedby="pw-hint pw-err">
+            <button type="button" class="toggle" data-target="password"
+                    aria-pressed="false" aria-label="Show password">Show</button>
+          </div>
+          <span class="hint" id="pw-hint">At least 8 characters with a letter and a number.</span>
+          <span class="err" id="pw-err" aria-live="polite"></span>
+        </div>
+        <div>
+          <label for="confirm" class="req">Confirm password</label>
+          <div class="pwwrap">
+            <input id="confirm" name="confirm" type="password"
+                   autocomplete="new-password" required minlength="8" maxlength="128"
+                   aria-describedby="confirm-err">
+            <button type="button" class="toggle" data-target="confirm"
+                    aria-pressed="false" aria-label="Show confirm password">Show</button>
+          </div>
+          <span class="err" id="confirm-err" aria-live="polite"></span>
+        </div>
+      </fieldset>
+
+      <label class="check">
+        <input id="terms" name="terms" type="checkbox" required
+               aria-describedby="terms-err">
+        <span>I agree to the <a href="#terms-link">Terms of Service</a> and <a href="#privacy-link">Privacy Policy</a>.</span>
+      </label>
+      <span class="err" id="terms-err" aria-live="polite" style="display:block;margin-top:-.75rem;margin-bottom:1rem"></span>
+
+      <button type="submit" class="primary" id="submit">Create account</button>
+
+      <p class="login">Already have an account? <a href="#signin">Sign in</a></p>
+    </form>
+  </section>
+</main>
+<footer class="site">
+  <p>© Citizen Service Portal. An official public-service website.</p>
+</footer>
+
+<script>
+(function(){
+  var STORAGE_USERS = 'csp.users';
+  var STORAGE_SESSION = 'csp.session';
+  var form = document.getElementById('reg');
+  var status = document.getElementById('status');
+  var submitBtn = document.getElementById('submit');
+  var fields = {
+    username: document.getElementById('username'),
+    email: document.getElementById('email'),
+    dob: document.getElementById('dob'),
+    password: document.getElementById('password'),
+    confirm: document.getElementById('confirm'),
+    terms: document.getElementById('terms')
+  };
+  var errs = {
+    username: document.getElementById('username-err'),
+    email: document.getElementById('email-err'),
+    dob: document.getElementById('dob-err'),
+    password: document.getElementById('pw-err'),
+    confirm: document.getElementById('confirm-err'),
+    terms: document.getElementById('terms-err')
+  };
+
+  function loadUsers(){
+    try{ return JSON.parse(localStorage.getItem(STORAGE_USERS) || '{}'); }
+    catch(e){ return {}; }
+  }
+  function saveUsers(u){ localStorage.setItem(STORAGE_USERS, JSON.stringify(u)); }
+
+  function setError(name, msg){
+    var input = fields[name];
+    var out = errs[name];
+    if(msg){
+      if(input && input.type !== 'checkbox') input.setAttribute('aria-invalid','true');
+      out.textContent = msg;
+    } else {
+      if(input && input.type !== 'checkbox') input.removeAttribute('aria-invalid');
+      out.textContent = '';
+    }
+  }
+
+  function emailValid(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
+  function pwStrong(v){ return v.length >= 8 && /[A-Za-z]/.test(v) && /\d/.test(v); }
+
+  function validateField(name){
+    var v = (fields[name].value || '').trim();
+    switch(name){
+      case 'username':
+        if(!v) return 'Please choose a username.';
+        if(v.length < 3) return 'Username must be at least 3 characters.';
+        if(v.length > 24) return 'Username must be at most 24 characters.';
+        if(!/^[A-Za-z0-9_]+$/.test(v)) return 'Use letters, numbers, or underscore only.';
+        var users = loadUsers();
+        if(users[v.toLowerCase()]) return 'That username is already taken.';
+        return '';
+      case 'email':
+        if(!v) return 'Please enter your email address.';
+        if(!emailValid(v)) return 'Enter a valid email address.';
+        var u2 = loadUsers();
+        var em = v.toLowerCase();
+        for(var k in u2){ if(u2[k].email === em) return 'An account with that email already exists.'; }
+        return '';
+      case 'dob':
+        if(!v) return '';
+        var d = new Date(v);
+        if(isNaN(d.getTime())) return 'Enter a valid date.';
+        var today = new Date(); today.setHours(0,0,0,0);
+        if(d > today) return 'Date of birth cannot be in the future.';
+        var age = (today - d) / (365.25*24*60*60*1000);
+        if(age > 120) return 'Please enter a realistic date of birth.';
+        return '';
+      case 'password':
+        if(!fields.password.value) return 'Please choose a password.';
+        if(!pwStrong(fields.password.value))
+          return 'Use at least 8 characters with a letter and a number.';
+        return '';
+      case 'confirm':
+        if(!fields.confirm.value) return 'Please confirm your password.';
+        if(fields.password.value !== fields.confirm.value)
+          return 'Passwords do not match.';
+        return '';
+      case 'terms':
+        if(!fields.terms.checked) return 'You must accept the Terms of Service to continue.';
+        return '';
+    }
+    return '';
+  }
+
+  function showStatus(kind, msg){
+    status.className = 'status show ' + kind;
+    status.textContent = msg;
+  }
+  function clearStatus(){
+    status.className = 'status';
+    status.textContent = '';
+  }
+
+  Object.keys(fields).forEach(function(name){
+    var el = fields[name];
+    var evt = (el.type === 'checkbox') ? 'change' : 'input';
+    el.addEventListener(evt, function(){
+      var msg = validateField(name);
+      setError(name, msg);
+      if(name === 'password' && fields.confirm.value){
+        var cmsg = validateField('confirm');
+        setError('confirm', cmsg);
+      }
+      if(status.classList.contains('err')) clearStatus();
+    });
+    el.addEventListener('blur', function(){
+      var msg = validateField(name);
+      setError(name, msg);
+    });
+  });
+
+  document.querySelectorAll('.toggle').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var id = btn.getAttribute('data-target');
+      var input = document.getElementById(id);
+      var showing = input.type === 'text';
+      input.type = showing ? 'password' : 'text';
+      btn.setAttribute('aria-pressed', String(!showing));
+      btn.setAttribute('aria-label', showing ? 'Show ' + (id==='password'?'password':'confirm password') : 'Hide ' + (id==='password'?'password':'confirm password'));
+      btn.textContent = showing ? 'Show' : 'Hide';
+      input.focus();
+    });
+  });
+
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+    clearStatus();
+    var firstBad = null;
+    Object.keys(fields).forEach(function(name){
+      var msg = validateField(name);
+      setError(name, msg);
+      if(msg && !firstBad) firstBad = fields[name];
+    });
+    if(firstBad){
+      showStatus('err', 'Please fix the highlighted fields and try again.');
+      firstBad.focus();
+      return;
+    }
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Creating account…';
+    setTimeout(function(){
+      var users = loadUsers();
+      var username = fields.username.value.trim();
+      var email = fields.email.value.trim().toLowerCase();
+      users[username.toLowerCase()] = {
+        email: email,
+        dob: fields.dob.value || null,
+        createdAt: new Date().toISOString()
+      };
+      saveUsers(users);
+      try{ sessionStorage.setItem(STORAGE_SESSION, username); }catch(_){}
+      showStatus('ok', 'Account created for ' + username + '. Check ' + email + ' for a verification link.');
+      form.reset();
+      Object.keys(errs).forEach(function(k){ setError(k, ''); });
+      document.querySelectorAll('.toggle').forEach(function(b){
+        var id = b.getAttribute('data-target');
+        var input = document.getElementById(id);
+        if(input.type === 'text'){
+          input.type = 'password';
+          b.setAttribute('aria-pressed','false');
+          b.textContent = 'Show';
+        }
+      });
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Create account';
+    }, 350);
+  });
+})();
+</script>
+</body>
+</html>

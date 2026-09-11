@@ -1,0 +1,43 @@
+{
+  "name": "GenerationArtifactError",
+  "message": "Max turns (6) exceeded",
+  "durationMs": 221613,
+  "usage": {
+    "requests": 6,
+    "inputTokens": 99181,
+    "outputTokens": 19680,
+    "totalTokens": 118861,
+    "requestUsage": [
+      {
+        "inputTokens": 8189,
+        "outputTokens": 3280,
+        "totalTokens": 11469
+      },
+      {
+        "inputTokens": 11522,
+        "outputTokens": 3280,
+        "totalTokens": 14802
+      },
+      {
+        "inputTokens": 14855,
+        "outputTokens": 3280,
+        "totalTokens": 18135
+      },
+      {
+        "inputTokens": 18188,
+        "outputTokens": 3280,
+        "totalTokens": 21468
+      },
+      {
+        "inputTokens": 21549,
+        "outputTokens": 3280,
+        "totalTokens": 24829
+      },
+      {
+        "inputTokens": 24878,
+        "outputTokens": 3280,
+        "totalTokens": 28158
+      }
+    ]
+  }
+}

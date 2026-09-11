@@ -1,0 +1,54 @@
+{
+  "outcome": "RUN_ERROR",
+  "runId": "20260911T021827Z-gui-8fb22ecb",
+  "runRoot": "/private/tmp/lab02-final-02785ac-kimi/Lab/Lab02/runs/20260911T021827Z-gui-8fb22ecb",
+  "workspaceRoot": "/private/tmp/lab02-final-02785ac-kimi/Lab/Lab02/workspace/gui",
+  "modelConfiguration": {
+    "envFile": ".env",
+    "model": "kimi-k3",
+    "inferencePolicy": {
+      "id": "classroom-model-policy-v2",
+      "model": "kimi-k3",
+      "mode": "non-thinking",
+      "temperature": 0,
+      "providerData": {
+        "thinking": {
+          "type": "disabled"
+        }
+      }
+    }
+  },
+  "modelPerformance": {
+    "model": "kimi-k3",
+    "stages": 1,
+    "durationMs": 33605,
+    "requests": 1,
+    "inputTokens": 721,
+    "outputTokens": 3747,
+    "totalTokens": 4468,
+    "calls": [
+      {
+        "stage": "direct",
+        "durationMs": 33605,
+        "usage": {
+          "requests": 1,
+          "inputTokens": 721,
+          "outputTokens": 3747,
+          "totalTokens": 4468,
+          "requestUsage": [
+            {
+              "inputTokens": 721,
+              "outputTokens": 3747,
+              "totalTokens": 4468
+            }
+          ]
+        },
+        "status": "completed"
+      }
+    ]
+  },
+  "error": {
+    "name": "Error",
+    "message": "Request timed out."
+  }
+}
