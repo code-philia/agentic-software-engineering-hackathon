@@ -1,0 +1,52 @@
+{
+  "commit": "eeaf33c",
+  "successDefinition": "reference train GREEN, final train GREEN, and TDD hidden validation improves over Direct",
+  "models": [
+    {
+      "model": "qwen3.8-max",
+      "attempts": 3,
+      "successfulAttempts": 3,
+      "successRate": 1,
+      "averagesOverSuccessfulAttempts": {
+        "modelDurationMs": 190564.67,
+        "requests": 4.67,
+        "inputTokens": 32654.67,
+        "outputTokens": 14260.67,
+        "totalTokens": 46915.33,
+        "directValidationPassed": 10.67,
+        "tddValidationPassed": 31.67,
+        "validationImprovement": 21,
+        "directVisualPassed": 6,
+        "tddVisualPassed": 8
+      },
+      "runs": [
+        { "runId": "20260911T003307Z-gui-c827ccd9", "outcome": "GREEN", "referenceTrain": "34/34", "initialTrain": "2/34", "finalTrain": "34/34", "testRepairs": 1, "implementationRepairs": 2, "directValidation": "11/36", "tddValidation": "35/36", "modelDurationMs": 211584, "requests": 5, "inputTokens": 38346, "outputTokens": 15601, "totalTokens": 53947 },
+        { "runId": "20260911T003317Z-gui-1600489e", "outcome": "GREEN", "referenceTrain": "12/12", "initialTrain": "4/12", "finalTrain": "12/12", "testRepairs": 2, "implementationRepairs": 2, "directValidation": "10/36", "tddValidation": "27/36", "modelDurationMs": 238486, "requests": 6, "inputTokens": 40945, "outputTokens": 18235, "totalTokens": 59180 },
+        { "runId": "20260911T003331Z-gui-30c9fbd7", "outcome": "GREEN", "referenceTrain": "35/35", "initialTrain": "16/35", "finalTrain": "35/35", "testRepairs": 0, "implementationRepairs": 1, "directValidation": "11/36", "tddValidation": "33/36", "modelDurationMs": 121624, "requests": 3, "inputTokens": 18673, "outputTokens": 8946, "totalTokens": 27619 }
+      ]
+    },
+    {
+      "model": "qwen3.6-plus",
+      "attempts": 3,
+      "successfulAttempts": 1,
+      "successRate": 0.3333333333,
+      "averagesOverSuccessfulAttempts": {
+        "modelDurationMs": 379198,
+        "requests": 6,
+        "inputTokens": 40314,
+        "outputTokens": 21370,
+        "totalTokens": 61684,
+        "directValidationPassed": 10,
+        "tddValidationPassed": 35,
+        "validationImprovement": 25,
+        "directVisualPassed": 6,
+        "tddVisualPassed": 8
+      },
+      "runs": [
+        { "runId": "20260911T002435Z-gui-9b168a29", "outcome": "GREEN", "referenceTrain": "8/8", "initialTrain": "2/8", "finalTrain": "8/8", "testRepairs": 2, "implementationRepairs": 2, "directValidation": "10/36", "tddValidation": "35/36", "modelDurationMs": 379198, "requests": 6, "inputTokens": 40314, "outputTokens": 21370, "totalTokens": 61684 },
+        { "runId": "20260911T003326Z-gui-bc6c41e4", "outcome": "INVALID_TRAIN_SUITE", "referenceTrain": "11/13", "initialTrain": null, "finalTrain": "11/13", "testRepairs": 3, "implementationRepairs": 0, "directValidation": "10/36", "tddValidation": null, "modelDurationMs": 272487, "requests": 5, "inputTokens": 27495, "outputTokens": 15632, "totalTokens": 43127 },
+        { "runId": "20260911T003351Z-gui-2103fb6c", "outcome": "INVALID_TRAIN_SUITE", "referenceTrain": "8/9", "initialTrain": null, "finalTrain": "8/9", "testRepairs": 3, "implementationRepairs": 0, "directValidation": "9/36", "tddValidation": null, "modelDurationMs": 237265, "requests": 5, "inputTokens": 26320, "outputTokens": 13566, "totalTokens": 39886 }
+      ]
+    }
+  ]
+}
