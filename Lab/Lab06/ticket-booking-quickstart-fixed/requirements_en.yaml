@@ -1,0 +1,140 @@
+id: ROOT
+name: 'Train Ticket Booking Demo System'
+type: FOLDER
+description: |-
+  A small train ticket booking website where visitors can register an account, log in, search published train services, and submit passenger information to complete a booking after logging in.
+  Accounts, login sessions, and confirmed orders must be persisted and remain recoverable after a page refresh or service restart.
+  The system implements only the complete main flow required for the teaching demo. It does not include online payment, ticket refunds, ticket changes, order cancellation, seat inventory deduction, historical order lists, or timetable management.
+  Homepage visual reference: ![Homepage](./reference/homepage.png)
+dependencies: []
+children:
+  - id: REQ-1
+    name: 'Register a Passenger Account'
+    type: ATOMIC
+    description: |-
+      Validation contract: The application must support direct access to `/register`, and the homepage must provide a clickable `Register` link to this page. The registration page must provide the following stable and unique English accessible names for Playwright to locate elements using `getByLabel` or `getByRole`. Controls must have a native association with their corresponding labels and must not rely on CSS classes, DOM order, or placeholders: `Username` is a required text input; `Password` is a required password input and must display a three-level password-strength indicator that changes dynamically as the user types; `Confirm password` is a required password input; `Document type` is a required native select with the options `Select document type` (initial value), `National ID card`, `Passport`, `Mainland Travel Permit for Hong Kong and Macao Residents`, `Mainland Travel Permit for Taiwan Residents`, and `Foreign Permanent Resident ID Card`; `Full name` is a required text input; `Document number` is a required text input; `Concession type` is a required native select with the initial prompt `Select passenger type` and the options `Adult`, `Child`, `Student`, `Disabled veteran`, and `Other concession type`; `Email` is an optional email input; `Country/region code` is a required select in a phone-number composite control, defaults to `+86`, and must provide international calling codes such as `+84`; `Phone number` is a required text input; there must be a required checkbox with an accessible name containing `Terms of Service` or `Privacy Policy`; and there must be a submit button with the accessible name `Next`. After valid data is submitted, the application must call the registration API, create a login session, and navigate back to `/`. The homepage must display the submitted username and a sign-out link with the accessible name `Sign out`, and the login state must persist after a refresh. For missing fields, invalid formats, mismatched passwords, duplicate usernames or email addresses, or unaccepted agreements, the application must display visible English error messages and must not create an account or login session.
+      Implement the passenger registration page and registration API, with navigation from the homepage through `Register`.
+      The page provides controls for username, password, confirm password, document type, full name, document number, concession type, email, country/region code, phone number, Terms of Service and Privacy Policy checkboxes, and a `Next` button.
+      The frontend handles required-field prompts and basic interaction, while the backend must perform all validation again and must not rely on frontend results.
+      Username, password, confirm password, document type, full name, document number, concession type, country/region code, and phone number are required. Email is optional. The user must accept the Terms of Service and Privacy Policy.
+      After leading and trailing whitespace is removed, the full name must contain 2-100 non-whitespace characters;
+      The document number may contain only 6-30 ASCII letters, digits, or hyphens;
+      The document type and concession type must be selected from the valid options provided by the page, and the phone number must pass validation together with the country/region code.
+      The username may contain only 3-32 ASCII letters, digits, hyphens, or underscores.
+      When provided, the email must be a complete valid address no longer than 254 characters.
+      The password must be 12-128 characters long and contain at least one uppercase letter, one lowercase letter, one digit, and one special character;
+      The confirm password must match;
+      The user must accept the Terms of Service and Privacy Policy.
+      Usernames and email addresses must both be unique. Email duplicate checks are case-insensitive.
+      The registration API must use a server-generated account identifier and session token and must not return the password or password hash.
+      A valid submission securely writes the account to a persistent file, creates a login session, and returns to the homepage;
+      The page displays the current username and `Sign out`.
+      Any missing, invalid, or duplicate data must produce a clear error and must not create an account or session.
+      Account writes should use a safe read-modify-write flow to avoid file corruption and partial writes.
+      Demo data uses the unique username `tb-user-<timestamp>-<random-value>`, a valid email generated from that username, the password `Valid-password-123!`, the full name `Ticket User <timestamp>-<random-value>`, document type `Passport`, document number `P<timestamp-digits>`, concession type `Adult`, country/region code `+84`, and valid phone number `912345678`.
+      Duplicate scenarios reuse the same username or email;
+      Invalid examples include username `bad username!`, email `not-an-email`, password `short`, mismatched passwords, a missing document number, or an unchecked agreement.
+      Optional visual reference: ![Registration page](./reference/register.png)
+    dependencies: []
+    scenarios:
+      - name: 'Register with valid information and remain signed in'
+        steps:
+          - keyword: GIVEN
+            content: |-
+               An unauthenticated visitor has prepared a unique account and passenger information that meet the rules.
+          - keyword: WHEN
+            content: |-
+               The visitor fills out the registration form, accepts the Terms of Service, and clicks `Next`.
+          - keyword: THEN
+            content: |-
+               The system saves the account and creates a session. The homepage displays the username and `Sign out`, and the session remains active after a page refresh.
+      - name: 'Reject missing or incorrectly formatted information'
+        steps:
+          - keyword: GIVEN
+            content: |-
+               The registration information has a missing required field, an invalid format, an invalid date, a weak password, mismatched passwords, or an unaccepted agreement.
+          - keyword: WHEN
+            content: |-
+               The visitor submits the registration form.
+          - keyword: THEN
+            content: |-
+               The page displays the corresponding error. The system creates neither an account nor a login session.
+      - name: 'Reject duplicate username or email'
+        steps:
+          - keyword: GIVEN
+            content: |-
+               The system already contains the same username or an email whose content is the same despite different letter casing.
+          - keyword: WHEN
+            content: |-
+               The visitor submits the registration form again.
+          - keyword: THEN
+            content: |-
+               The system returns a duplicate-account error. The original account remains unchanged, and no new account or session is created.
+  - id: REQ-2
+    name: 'Log In and Sign Out'
+    type: ATOMIC
+    description: |-
+      Validation contract: The application must support direct access to `/login`, and the homepage must provide a `Login` or `Sign in` entry that Playwright can locate with `getByRole('link')`. The login page only needs to implement the core username-and-password login flow; QR codes, scan-to-login, promotional content, password recovery, and other extensions are not required. It must provide controls that are natively associated with labels and can be located by Playwright using `getByLabel` or `getByRole`: a text input with the accessible name `Username or email`, a password input with the accessible name `Password`, and a submit button with the accessible name `Login` or `Sign in`. The login input must accept either a username or email address. The server should remove leading and trailing whitespace from the account identifier, match usernames by their stored value, match email addresses case-insensitively, and require an exact, case-sensitive password match. The four required core scenarios are: login with a valid username and password, login with an email address using different letter casing, login with an incorrect password or incomplete credentials, and login with an unknown account. Incorrect passwords, incomplete credentials, and unknown accounts must display exactly the same generic error message. The error may use `invalid credentials`, `login failed`, `sign-in failed`, `incorrect credentials`, `incorrect password`, `wrong credentials`, or `wrong password`, and must not reveal whether the account exists. After successful login, the application must navigate to `/`. The homepage must display the current username and a sign-out link with the accessible name `Sign out`, and the login state must persist after a refresh. A failed login must not display the sign-out link and must not create or modify a login session.
+      Implement the login page, login API, session restoration, and sign-out.
+      Navigate to the login page by clicking `Login` on the homepage.
+      The login page provides `Username or email`, `Password`, and `Login` controls.
+      On submission, remove leading and trailing whitespace from the account identifier;
+      Match usernames by their stored value, match email addresses case-insensitively, and require an exact password match.
+      The backend reads users from the persistent account file, generates an unpredictable session token after successful verification, saves the session, and then returns to the homepage.
+      When signed out, the homepage displays `Register` and `Login`; after login, it displays the current username and `Sign out`.
+      The browser restores identity through secure session credentials, and the session must remain active after a page refresh.
+      When `Sign out` is clicked, the server deletes or invalidates the current session, the browser clears the session credentials, and navigation returns to the signed-out state;
+      A subsequent refresh must not restore a session that has already been signed out.
+      If the username, email, or password is empty, the account does not exist, or the password is incorrect, display a unified login-failure message that does not reveal whether the account exists and keep the user signed out.
+      API responses must not return passwords, password hashes, or other user data.
+      During the demo, use the unique account created by REQ-1. The correct password is `Valid-password-123!`;
+      A valid example may use either the username or email and may include leading or trailing whitespace. Invalid examples use `incorrect-password` or an email address that does not exist.
+      Optional visual reference: ![Login page](./reference/login.png)
+    dependencies:
+      - REQ-1
+    scenarios:
+      - name: 'Log in with a username and restore the session'
+        steps:
+          - keyword: GIVEN
+            content: |-
+               A registered account exists in the system, and the visitor is currently signed out.
+          - keyword: WHEN
+            content: |-
+               The visitor logs in with a username containing optional leading or trailing whitespace and the correct password.
+          - keyword: THEN
+            content: |-
+               The homepage displays the stored username and `Sign out`, and the session remains valid after a page refresh.
+      - name: 'Log in with an email address'
+        steps:
+          - keyword: GIVEN
+            content: |-
+               A registered account with a valid email address exists in the system.
+          - keyword: WHEN
+            content: |-
+               The visitor logs in with the email address using different letter casing and the correct password.
+          - keyword: THEN
+            content: |-
+               The system identifies the same account and creates a login session.
+      - name: 'Reject invalid credentials'
+        steps:
+          - keyword: GIVEN
+            content: |-
+               The login identifier or password is empty, unknown, or incorrect.
+          - keyword: WHEN
+            content: |-
+               The visitor clicks `Login`.
+          - keyword: THEN
+            content: |-
+               The page displays a unified login-failure message, does not reveal whether the account exists, and does not create a session.
+      - name: 'Sign out of the current session'
+        steps:
+          - keyword: GIVEN
+            content: |-
+               The user is signed in and is on any public page.
+          - keyword: WHEN
+            content: |-
+               The user clicks `Sign out`.
+          - keyword: THEN
+            content: |-
+               The current session becomes invalid, the page restores the `Register` and `Login` entries, and the signed-out state remains after a refresh.
+

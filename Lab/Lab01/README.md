@@ -1,5 +1,10 @@
 # Lab 1：端到端需求编译与持续演进
 
+<p align="center">
+  <a href="./README.md">中文</a> |
+  <a href="./README_en.md">English</a>
+</p>
+
 本实验使用 Ticket Booking Demo，观察智能体如何把需求转化为接口、测试和可运行应用，并通过内部训练测试与平台外部验证测试不断修正实现。
 
 ## 实验目标
@@ -150,5 +155,3 @@ Demo 中的 **Re-run TDD** 使用预置快照重放这一迭代过程。完成�
 - Commit History、Traceability、Files、Live Preview 和 Test Results 始终展示同一当前版本。
 
 完整教学路线：自动构建并暂停 → 修复两个内部测试 → 补充内部测试并修复实现 → 修改错误内部测试并修复实现 → 修改 `REQ-2.2` 并重新编译 → 新增并实现 `REQ-3.4`。
-
-详细的案例依据、固定测试内容和教学预设参见 [`demo-teaching-scenarios.md`](../../../data/playground/web/ticketbooking/demo-teaching-scenarios.md)。

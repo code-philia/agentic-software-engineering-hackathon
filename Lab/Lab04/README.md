@@ -1,5 +1,10 @@
 # Lab 4：端到端的真实编译流程 - ARC Visualizer 实验指南
 
+<p align="center">
+  <a href="./README.md">中文</a> |
+  <a href="./README_en.md">English</a>
+</p>
+
 本实验演示如何使用 ARC Visualizer 完成一次从需求输入、应用生成到结果评估的端到端实验。
 
 实验的基本闭环是：

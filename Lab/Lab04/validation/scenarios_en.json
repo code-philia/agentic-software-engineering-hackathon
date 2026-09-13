@@ -1,0 +1,137 @@
+{
+  "version": 1,
+  "tests": [
+    {
+      "file": "REQ-1-user-registration.spec.ts",
+      "location": "REQ-1-user-registration.spec.ts:48:5",
+      "title": "REQ-1: successfully register a new account and remain signed in",
+      "scenario": {
+        "name": "Register with valid information and remain signed in",
+        "steps": [
+          {
+            "keyword": "GIVEN",
+            "content": "An unauthenticated visitor has prepared a unique account and passenger information that meet the rules."
+          },
+          {
+            "keyword": "WHEN",
+            "content": "The visitor fills out the registration form, accepts the Terms of Service, and clicks `Next`."
+          },
+          {
+            "keyword": "THEN",
+            "content": "The system saves the account and creates a session. The homepage displays the username and `Sign out`, and the session remains active after a page refresh."
+          }
+        ]
+      }
+    },
+    {
+      "file": "REQ-1-user-registration.spec.ts",
+      "location": "REQ-1-user-registration.spec.ts:73:5",
+      "title": "REQ-1: reject a duplicate username without creating a signed-in session",
+      "scenario": {
+        "name": "Reject duplicate username or email",
+        "steps": [
+          {
+            "keyword": "GIVEN",
+            "content": "The system already contains the same username or an email whose content is the same despite different letter casing."
+          },
+          {
+            "keyword": "WHEN",
+            "content": "The visitor submits the registration form again."
+          },
+          {
+            "keyword": "THEN",
+            "content": "The system returns a duplicate-account error. The original account remains unchanged, and no new account or session is created."
+          }
+        ]
+      }
+    },
+    {
+      "file": "REQ-1-user-registration.spec.ts",
+      "location": "REQ-1-user-registration.spec.ts:85:5",
+      "title": "REQ-1: reject duplicate email with a different username",
+      "scenario": {
+        "name": "Reject duplicate username or email",
+        "steps": [
+          {
+            "keyword": "GIVEN",
+            "content": "The system already contains the same username or an email whose content is the same despite different letter casing."
+          },
+          {
+            "keyword": "WHEN",
+            "content": "The visitor submits the registration form again."
+          },
+          {
+            "keyword": "THEN",
+            "content": "The system returns a duplicate-account error. The original account remains unchanged, and no new account or session is created."
+          }
+        ]
+      }
+    },
+    {
+      "file": "REQ-1-user-registration.spec.ts",
+      "location": "REQ-1-user-registration.spec.ts:97:5",
+      "title": "REQ-1: reject mismatched passwords without creating a signed-in session",
+      "scenario": {
+        "name": "Reject missing or incorrectly formatted information",
+        "steps": [
+          {
+            "keyword": "GIVEN",
+            "content": "The registration information has a missing required field, an invalid format, an invalid date, a weak password, mismatched passwords, or an unaccepted agreement."
+          },
+          {
+            "keyword": "WHEN",
+            "content": "The visitor submits the registration form."
+          },
+          {
+            "keyword": "THEN",
+            "content": "The page displays the corresponding error. The system creates neither an account nor a login session."
+          }
+        ]
+      }
+    },
+    {
+      "file": "REQ-1-user-registration.spec.ts",
+      "location": "REQ-1-user-registration.spec.ts:105:5",
+      "title": "REQ-1: reject missing required registration values before creating a session",
+      "scenario": {
+        "name": "Reject missing or incorrectly formatted information",
+        "steps": [
+          {
+            "keyword": "GIVEN",
+            "content": "The registration information has a missing required field, an invalid format, an invalid date, a weak password, mismatched passwords, or an unaccepted agreement."
+          },
+          {
+            "keyword": "WHEN",
+            "content": "The visitor submits the registration form."
+          },
+          {
+            "keyword": "THEN",
+            "content": "The page displays the corresponding error. The system creates neither an account nor a login session."
+          }
+        ]
+      }
+    },
+    {
+      "file": "REQ-1-user-registration.spec.ts",
+      "location": "REQ-1-user-registration.spec.ts:121:5",
+      "title": "REQ-1: reject malformed username, email, or password without signing in",
+      "scenario": {
+        "name": "Reject missing or incorrectly formatted information",
+        "steps": [
+          {
+            "keyword": "GIVEN",
+            "content": "The registration information has a missing required field, an invalid format, an invalid date, a weak password, mismatched passwords, or an unaccepted agreement."
+          },
+          {
+            "keyword": "WHEN",
+            "content": "The visitor submits the registration form."
+          },
+          {
+            "keyword": "THEN",
+            "content": "The page displays the corresponding error. The system creates neither an account nor a login session."
+          }
+        ]
+      }
+    }
+  ]
+}

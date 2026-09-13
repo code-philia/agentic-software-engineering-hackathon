@@ -1,5 +1,10 @@
 # Agentic Software Engineering Hackathon
 
+<p align="center">
+  <a href="./README.md">中文</a> |
+  <a href="./README_en.md">English</a>
+</p>
+
 本仓库包含 Agentic Software Engineering Hackathon 课程的 7 个实验（Lab）。各实验按递进方式组织，可从下方链接进入对应目录。
 
 | Lab | 主题简介 |

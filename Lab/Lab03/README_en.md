@@ -5,4 +5,5 @@
   <a href="./README_en.md">English</a>
 </p>
 
-面向任务的模型选择与协作。
+Task-oriented model selection and collaboration.
+
