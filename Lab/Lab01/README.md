@@ -16,7 +16,7 @@
 
 ### 启动 Demo
 
-1. 登录平台并点击 **Quick Start**。
+1. 登录平台（arc-bench.com）并点击 **Quick Start**。
 2. 选择 Ticket Booking 任务并启动 Demo。
 3. 观察三个阶段：
    - Stage 1：准备工作区和智能体；
