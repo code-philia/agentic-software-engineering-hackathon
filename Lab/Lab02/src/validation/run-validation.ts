@@ -1,6 +1,6 @@
 import { createRequire } from "node:module";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
-import { dirname, join, resolve } from "node:path";
+import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import {
@@ -26,6 +26,10 @@ const playwrightCli = join(
   dirname(require.resolve("@playwright/test/package.json")),
   "cli.js",
 );
+const guiValidationSpec = relative(
+  projectRoot,
+  join(validationRoot, "gui", "register.validation.spec.ts"),
+).replaceAll("\\", "/");
 
 interface CommonValidationOptions {
   readonly reportPath: string;
@@ -271,7 +275,7 @@ export async function runGuiValidation(
       [
         playwrightCli,
         "test",
-        join(validationRoot, "gui", "register.validation.spec.ts"),
+        guiValidationSpec,
         "--config",
         join(validationRoot, "playwright.validation.config.ts"),
       ],
