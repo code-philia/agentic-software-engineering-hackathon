@@ -1,6 +1,6 @@
 import { createRequire } from "node:module";
 import { copyFile, mkdir, readFile, writeFile } from "node:fs/promises";
-import { dirname, join, resolve } from "node:path";
+import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import {
@@ -393,9 +393,14 @@ export async function runApiTrainTests(
 export async function runGuiTrainTests(
   options: GuiTestOptions,
 ): Promise<TrainTestResult> {
+  const absoluteTestPath = resolve(options.testPath);
+  const playwrightTestPath = relative(projectRoot, absoluteTestPath).replaceAll(
+    "\\",
+    "/",
+  );
   await copyFile(
     courseGuiTestSupport,
-    join(dirname(resolve(options.testPath)), "course-gui-test-support.ts"),
+    join(dirname(absoluteTestPath), "course-gui-test-support.ts"),
   );
   const server = await startGuiServer({ htmlPath: options.htmlPath });
 
@@ -413,7 +418,7 @@ export async function runGuiTrainTests(
       [
         playwrightCli,
         "test",
-        resolve(options.testPath),
+        playwrightTestPath,
         "--config",
         playwrightConfig,
         ...(excludedPattern === undefined
@@ -424,7 +429,7 @@ export async function runGuiTrainTests(
         cwd: projectRoot,
         env: {
           COURSE_GUI_BASE_URL: server.url,
-          COURSE_TEST_DIR: dirname(resolve(options.testPath)),
+          COURSE_TEST_DIR: dirname(absoluteTestPath),
           COURSE_TEST_REPORT: resolve(options.reportPath),
           COURSE_TEST_OUTPUT: resolve(options.browserOutputPath),
         },
